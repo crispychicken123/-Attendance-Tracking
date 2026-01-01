@@ -1,0 +1,3828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍗 CRISPY CHICKEN CCM - Employee Management</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Excel Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        /* --- CSS VARIABLES --- */
+        :root {
+            --primary: #FF6B35; /* Crispy Orange */
+            --primary-dark: #E55A2B;
+            --secondary: #FFD166; /* Golden Yellow */
+            --accent: #06D6A0; /* Fresh Green */
+            --danger: #EF476F;
+            --warning: #FFD166;
+            --info: #118AB2;
+            --dark: #073B4C;
+            --light: #F8F9FA;
+            --gray: #6C757D;
+            
+            --bg-body: #f8f9fa;
+            --surface: #ffffff;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --border: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-mode {
+            --primary: #FF8B5A;
+            --primary-dark: #FF6B35;
+            --bg-body: #121212;
+            --surface: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #b0b0b0;
+            --border: #333333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- GLOBAL STYLES --- */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body { 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        /* --- LOADING SPINNER --- */
+        .spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 9999;
+            display: none;
+        }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* --- HEADER --- */
+        header { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 0 30px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .brand { 
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .brand-icon {
+            font-size: 32px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .brand-text h1 {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .brand-text span {
+            font-size: 12px;
+            opacity: 0.9;
+            color: white;
+            font-weight: 400;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .clock {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        
+        /* --- MAIN NAVIGATION --- */
+        .main-nav {
+            background: var(--surface);
+            padding: 0 30px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            padding: 10px 0;
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .nav-tab:hover {
+            background: var(--bg-body);
+            color: var(--primary);
+        }
+        
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            padding: 30px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+        
+        /* --- DASHBOARD CARDS --- */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        
+        .icon-employees { background: rgba(255, 107, 53, 0.1); color: var(--primary); }
+        .icon-attendance { background: rgba(6, 214, 160, 0.1); color: var(--accent); }
+        .icon-overtime { background: rgba(255, 209, 102, 0.1); color: var(--warning); }
+        .icon-requests { background: rgba(17, 138, 178, 0.1); color: var(--info); }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* --- TOOLBAR --- */
+        .toolbar {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            outline: none;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-body);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+        
+        /* --- DATA TABLE --- */
+        .data-table-container {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        .data-table th {
+            background: var(--bg-body);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+        
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        
+        .data-table tbody tr {
+            transition: var(--transition);
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--bg-body);
+        }
+        
+        /* --- EMPLOYEE CARD --- */
+        .employee-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .employee-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--surface);
+            box-shadow: 0 0 0 2px var(--border);
+        }
+        
+        .employee-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .employee-name {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .employee-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        /* --- STATUS BADGES --- */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        
+        .status-present { background: #d1fae5; color: #065f46; }
+        .status-absent { background: #fee2e2; color: #991b1b; }
+        .status-vacation { background: #fef3c7; color: #92400e; }
+        .status-sick { background: #e0e7ff; color: #3730a3; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        
+        /* --- MODALS --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-body);
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .modal-close:hover {
+            background: var(--border);
+            color: var(--text-main);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-body);
+        }
+        
+        /* --- FORMS --- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            outline: none;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--surface);
+            color: var(--text-main);
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transform: translateX(100px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 3000;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 350px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success { border-left-color: var(--accent); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.info { border-left-color: var(--info); }
+        
+        /* --- SYSTEM MENU --- */
+        .system-menu {
+            position: relative;
+        }
+        
+        .sys-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 250px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            flex-direction: column;
+            padding: 8px;
+            margin-top: 10px;
+            z-index: 100;
+        }
+        
+        .sys-dropdown.show {
+            display: flex;
+        }
+        
+        .sys-item {
+            padding: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+        
+        .sys-item:hover {
+            background: var(--bg-body);
+        }
+        
+        .sys-item i {
+            width: 20px;
+            color: var(--text-muted);
+        }
+        
+        .sys-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+        
+        /* --- ATTENDANCE CALENDAR --- */
+        .attendance-calendar {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .calendar-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .calendar-day:hover {
+            background: var(--bg-body);
+        }
+        
+        .calendar-day.present { background: #d1fae5; color: #065f46; }
+        .calendar-day.absent { background: #fee2e2; color: #991b1b; }
+        .calendar-day.vacation { background: #fef3c7; color: #92400e; }
+        .calendar-day.sick { background: #e0e7ff; color: #3730a3; }
+        .calendar-day.off { background: #f3f4f6; color: #6b7280; }
+        
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1200px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .nav-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 5px;
+            }
+            
+            .nav-tab {
+                flex-shrink: 0;
+            }
+        }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .print-container, .print-container * { visibility: visible; }
+            .print-container { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="spinner no-print"></div>
+    
+    <!-- Toast Notification -->
+    <div class="toast no-print">
+        <i class="fas fa-check-circle"></i>
+        <span class="toast-message">Operation completed</span>
+    </div>
+    
+    <!-- Header -->
+    <header class="no-print">
+        <div class="brand">
+            <div class="brand-icon">
+                🍗
+            </div>
+            <div class="brand-text">
+                <h1>CRISPY CHICKEN CCM</h1>
+                <span>Employee Management System v2.0</span>
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <button class="btn-icon" onclick="CCM.toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="clock" id="clock">00:00:00</div>
+        </div>
+    </header>
+    
+    <!-- Navigation -->
+    <nav class="main-nav no-print">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="CCM.switchView('dashboard')">
+                <i class="fas fa-home"></i> Dashboard
+            </button>
+            <button class="nav-tab" onclick="CCM.switchView('employees')">
+                <i class="fas fa-users"></i> Employees
+            </button>
+            <button class="nav-tab" onclick="CCM.switchView('attendance')">
+                <i class="fas fa-calendar-check"></i> Attendance
+            </button>
+            <button class="nav-tab" onclick="CCM.switchView('schedule')">
+                <i class="fas fa-clock"></i> Schedule
+            </button>
+            <button class="nav-tab" onclick="CCM.switchView('requests')">
+                <i class="fas fa-plane-departure"></i> Leave Requests
+            </button>
+            <button class="nav-tab" onclick="CCM.switchView('reports')">
+                <i class="fas fa-chart-bar"></i> Reports
+            </button>
+            <div class="system-menu">
+                <button class="nav-tab" onclick="CCM.toggleSystemMenu()">
+                    <i class="fas fa-cog"></i> System
+                </button>
+                <div class="sys-dropdown" id="sysDropdown">
+                    <div class="sys-item" onclick="CCM.showSystemInfo()">
+                        <i class="fas fa-info-circle"></i> System Info
+                    </div>
+                    <div class="sys-item" onclick="CCM.showLogs()">
+                        <i class="fas fa-clipboard-list"></i> System Logs
+                    </div>
+                    <div class="sys-item" onclick="CCM.exportBackup()">
+                        <i class="fas fa-download"></i> Download Backup
+                    </div>
+                    <div class="sys-item" onclick="document.getElementById('importFile').click()">
+                        <i class="fas fa-file-import"></i> Import CSV
+                        <input type="file" id="importFile" accept=".csv" style="display:none" onchange="CCM.importCSV(event)">
+                    </div>
+                    <div class="sys-item" onclick="document.getElementById('restoreFile').click()">
+                        <i class="fas fa-upload"></i> Restore Backup
+                        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="CCM.restoreBackup(event)">
+                    </div>
+                    <div class="sys-divider"></div>
+                    <div class="sys-item" onclick="CCM.lockSystem()" style="color: var(--warning);">
+                        <i class="fas fa-lock"></i> Lock System
+                    </div>
+                    <div class="sys-item" onclick="CCM.resetSystem()" style="color: var(--danger);">
+                        <i class="fas fa-trash"></i> Reset All Data
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view-section active">
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon icon-employees">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value" id="statEmployees">0</div>
+                    <div class="stat-label">Total Employees</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon icon-attendance">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-value" id="statAttendance">0%</div>
+                    <div class="stat-label">This Month Attendance</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon icon-overtime">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" id="statOvertime">0</div>
+                    <div class="stat-label">Overtime Hours</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon icon-requests">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
+                    <div class="stat-value" id="statRequests">0</div>
+                    <div class="stat-label">Pending Requests</div>
+                </div>
+            </div>
+            
+            <div class="toolbar">
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="CCM.showModal('employee')">
+                        <i class="fas fa-user-plus"></i> Add Employee
+                    </button>
+                    <button class="btn btn-success" onclick="CCM.showModal('attendance')">
+                        <i class="fas fa-calendar-plus"></i> Mark Attendance
+                    </button>
+                    <button class="btn btn-info" onclick="CCM.showModal('request')">
+                        <i class="fas fa-plus-circle"></i> New Leave Request
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3 style="color: var(--text-main); margin-bottom: 10px;">Recent Activity</h3>
+                    <p style="color: var(--text-muted); font-size: 14px;">Latest updates in your system</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table" id="recentActivityTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Employee</th>
+                                <th>Activity</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Recent activity will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Employees View -->
+        <div id="employeesView" class="view-section">
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="employeeSearch" placeholder="Search employees..." onkeyup="CCM.searchEmployees()">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="CCM.showModal('employee')">
+                        <i class="fas fa-user-plus"></i> Add Employee
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.exportEmployeeList()">
+                        <i class="fas fa-file-excel"></i> Export List
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div class="table-responsive">
+                    <table class="data-table" id="employeesTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Position</th>
+                                <th>Department</th>
+                                <th>Contact</th>
+                                <th>Join Date</th>
+                                <th>Status</th>
+                                <th class="no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Employees will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance View -->
+        <div id="attendanceView" class="view-section">
+            <div class="toolbar">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="attendanceSearch" placeholder="Search..." onkeyup="CCM.searchAttendance()">
+                    </div>
+                    <select id="attendanceMonth" class="form-control" style="width: 150px;" onchange="CCM.renderAttendance()">
+                        <!-- Months will be populated -->
+                    </select>
+                    <select id="attendanceYear" class="form-control" style="width: 120px;" onchange="CCM.renderAttendance()">
+                        <!-- Years will be populated -->
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="CCM.showModal('attendance')">
+                        <i class="fas fa-calendar-plus"></i> Mark Attendance
+                    </button>
+                    <button class="btn btn-warning" onclick="CCM.showModal('overtime')">
+                        <i class="fas fa-clock"></i> Add Overtime
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.printAttendance()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div class="table-responsive">
+                    <table class="data-table" id="attendanceTable">
+                        <!-- Attendance table will be populated -->
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Schedule View -->
+        <div id="scheduleView" class="view-section">
+            <div class="toolbar">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="CCM.prevWeek()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div style="font-weight: 600; color: var(--text-main);" id="weekRange">Week Range</div>
+                    <button class="btn btn-secondary" onclick="CCM.nextWeek()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.todayWeek()">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </button>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="CCM.showModal('schedule')">
+                        <i class="fas fa-plus"></i> Add Schedule
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.printSchedule()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div class="table-responsive">
+                    <table class="data-table" id="scheduleTable">
+                        <!-- Schedule table will be populated -->
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Requests View -->
+        <div id="requestsView" class="view-section">
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="requestSearch" placeholder="Search requests..." onkeyup="CCM.searchRequests()">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="CCM.showModal('request')">
+                        <i class="fas fa-plus-circle"></i> New Request
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div class="table-responsive">
+                    <table class="data-table" id="requestsTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>Dates</th>
+                                <th>Duration</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th class="no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Requests will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports View -->
+        <div id="reportsView" class="view-section">
+            <div class="toolbar">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <label class="form-label">Start Date</label>
+                        <input type="date" id="reportStart" class="form-control" onchange="CCM.generateReport()">
+                    </div>
+                    <div>
+                        <label class="form-label">End Date</label>
+                        <input type="date" id="reportEnd" class="form-control" onchange="CCM.generateReport()">
+                    </div>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="reportSearch" placeholder="Filter by name..." onkeyup="CCM.generateReport()">
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-info" onclick="CCM.exportReportExcel()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.exportReportCSV()">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="CCM.printReport()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3 style="color: var(--text-main); margin-bottom: 10px;">Attendance Summary Report</h3>
+                    <p style="color: var(--text-muted); font-size: 14px;" id="reportPeriod">Report Period</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table" id="reportTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Working Days</th>
+                                <th>Absent Days</th>
+                                <th>Vacation Days</th>
+                                <th>Sick Days</th>
+                                <th>Overtime Hours</th>
+                                <th>Attendance Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Report data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Print Container (Hidden) -->
+    <div id="printContainer" class="print-container" style="display: none;"></div>
+    
+    <!-- Modals -->
+    <!-- Employee Modal -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-user"></i>
+                    <span id="employeeModalTitle">Add New Employee</span>
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('employee')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img id="employeePhoto" src="https://ui-avatars.com/api/?name=Employee&background=FF6B35&color=fff&size=100" 
+                             style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border);">
+                        <div>
+                            <label for="photoUpload" style="font-size: 12px; color: var(--primary); font-weight: 600; cursor: pointer; display: block; margin-top: 10px;">
+                                <i class="fas fa-camera"></i> Upload Photo
+                            </label>
+                            <input type="file" id="photoUpload" accept="image/*" style="display: none;" onchange="CCM.handlePhotoUpload(event)">
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="employeeId">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" id="employeeName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Employee ID *</label>
+                        <input type="text" id="employeeCode" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Position</label>
+                        <input type="text" id="employeePosition" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="employeeDepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="Kitchen">Kitchen</option>
+                            <option value="Service">Service</option>
+                            <option value="Management">Management</option>
+                            <option value="Delivery">Delivery</option>
+                            <option value="Cleaning">Cleaning</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" id="employeePhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="employeeEmail" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Join Date</label>
+                        <input type="date" id="employeeJoinDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Weekly Off</label>
+                        <select id="employeeWeeklyOff" class="form-control">
+                            <option value="">None</option>
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea id="employeeAddress" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteEmployeeBtn" style="display: none;" onclick="CCM.deleteEmployee()">
+                    Delete
+                </button>
+                <button class="btn btn-secondary" onclick="CCM.hideModal('employee')">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="CCM.saveEmployee()">
+                    Save Employee
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance Modal -->
+    <div class="modal" id="attendanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-calendar-check"></i>
+                    Mark Attendance
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('attendance')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select id="attendanceEmployee" class="form-control">
+                        <!-- Employees will be populated -->
+                    </select>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="attendanceDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="attendanceStatus" class="form-control">
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="vacation">Vacation</option>
+                            <option value="sick">Sick Leave</option>
+                            <option value="off">Weekly Off</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Check-in Time</label>
+                        <input type="time" id="checkInTime" class="form-control" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Check-out Time</label>
+                        <input type="time" id="checkOutTime" class="form-control" value="17:00">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="attendanceNotes" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="CCM.hideModal('attendance')">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="CCM.saveAttendance()">
+                    Save Attendance
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overtime Modal -->
+    <div class="modal" id="overtimeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-clock"></i>
+                    Add Overtime
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('overtime')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select id="overtimeEmployee" class="form-control">
+                        <!-- Employees will be populated -->
+                    </select>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="overtimeDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Overtime Hours</label>
+                        <input type="number" id="overtimeHours" class="form-control" value="2" step="0.5" min="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Reason</label>
+                    <textarea id="overtimeReason" class="form-control" rows="2" placeholder="Reason for overtime..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="CCM.hideModal('overtime')">
+                    Cancel
+                </button>
+                <button class="btn btn-warning" onclick="CCM.saveOvertime()">
+                    Save Overtime
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leave Request Modal -->
+    <div class="modal" id="requestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-plane-departure"></i>
+                    New Leave Request
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('request')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select id="requestEmployee" class="form-control">
+                        <!-- Employees will be populated -->
+                    </select>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Leave Type</label>
+                        <select id="requestType" class="form-control">
+                            <option value="vacation">Annual Vacation</option>
+                            <option value="sick">Sick Leave</option>
+                            <option value="emergency">Emergency Leave</option>
+                            <option value="unpaid">Unpaid Leave</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" id="requestStart" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Duration (Days)</label>
+                        <input type="number" id="requestDuration" class="form-control" value="1" min="1" onchange="CCM.calculateRequestEnd()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" id="requestEnd" class="form-control" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Reason</label>
+                    <textarea id="requestReason" class="form-control" rows="3" placeholder="Reason for leave..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="CCM.hideModal('request')">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="CCM.saveRequest()">
+                    Submit Request
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Info Modal -->
+    <div class="modal" id="systemInfoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-info-circle"></i>
+                    System Information
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('system')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🍗</div>
+                    <h3 style="color: var(--primary); margin-bottom: 5px;">CRISPY CHICKEN CCM</h3>
+                    <p style="color: var(--text-muted);">Employee Management System v2.0</p>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Version</label>
+                        <div class="form-control" style="background: var(--bg-body);">2.0.0</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Storage</label>
+                        <div class="form-control" style="background: var(--bg-body);" id="storageUsage">0 KB</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Employees</label>
+                        <div class="form-control" style="background: var(--bg-body);" id="employeeCount">0</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Backup</label>
+                        <div class="form-control" style="background: var(--bg-body);" id="lastBackup">Never</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="CCM.hideModal('system')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lock Screen Modal -->
+    <div class="modal" id="lockModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-body" style="text-align: center; padding: 40px 30px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+                <h3 style="color: var(--primary); margin-bottom: 10px;">System Locked</h3>
+                <p style="color: var(--text-muted); margin-bottom: 30px;">Enter PIN to unlock</p>
+                
+                <input type="password" id="pinInput" maxlength="4" 
+                       style="width: 100%; padding: 15px; text-align: center; font-size: 20px; letter-spacing: 10px; 
+                              border: 2px solid var(--border); border-radius: 8px; margin-bottom: 20px;" 
+                       placeholder="----">
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="CCM.addPin('1')">1</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('2')">2</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('3')">3</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('4')">4</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('5')">5</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('6')">6</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('7')">7</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('8')">8</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('9')">9</button>
+                    <button class="btn btn-secondary" onclick="CCM.clearPin()">C</button>
+                    <button class="btn btn-secondary" onclick="CCM.addPin('0')">0</button>
+                    <button class="btn btn-secondary" onclick="CCM.backspacePin()">⌫</button>
+                </div>
+                
+                <button class="btn btn-primary" onclick="CCM.unlockSystem()" style="width: 100%;">
+                    Unlock System
+                </button>
+                
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+                    Default PIN: 1234
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logs Modal -->
+    <div class="modal" id="logsModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    System Logs
+                </div>
+                <button class="modal-close" onclick="CCM.hideModal('logs')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border);">Time</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border);">Level</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border);">Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <!-- Logs will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="CCM.clearLogs()">
+                    Clear Logs
+                </button>
+                <button class="btn btn-primary" onclick="CCM.hideModal('logs')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Crispy Chicken CCM - Employee Management System
+        const CCM = {
+            // Configuration
+            config: {
+                storage: {
+                    employees: 'ccm_employees',
+                    attendance: 'ccm_attendance',
+                    schedule: 'ccm_schedule',
+                    requests: 'ccm_requests',
+                    logs: 'ccm_logs',
+                    settings: 'ccm_settings',
+                    systemPin: 'ccm_system_pin'
+                },
+                settings: {
+                    workHours: 9,
+                    defaultPin: '1234'
+                },
+                departments: ['Kitchen', 'Service', 'Management', 'Delivery', 'Cleaning']
+            },
+            
+            // Application State
+            state: {
+                employees: [],
+                attendance: {},
+                schedule: {},
+                requests: [],
+                logs: [],
+                settings: {},
+                currentView: 'dashboard',
+                currentMonth: new Date().getMonth(),
+                currentYear: new Date().getFullYear(),
+                scheduleWeek: new Date(),
+                searchTerm: '',
+                isLocked: false,
+                currentEmployeeId: null
+            },
+            
+            // Initialize Application
+            init() {
+                console.log('🍗 CRISPY CHICKEN CCM Initializing...');
+                this.showLoading();
+                
+                try {
+                    // Load all data from localStorage
+                    this.loadData();
+                    
+                    // Initialize UI
+                    this.initUI();
+                    
+                    // Start clock
+                    this.startClock();
+                    
+                    // Check if system should be locked
+                    this.checkLockState();
+                    
+                    // Create demo data if empty
+                    this.createDemoDataIfEmpty();
+                    
+                    // Update dashboard
+                    this.updateDashboard();
+                    
+                    console.log('✅ CRISPY CHICKEN CCM Ready!');
+                    this.showToast('System Ready', 'success');
+                } catch (error) {
+                    console.error('❌ Initialization failed:', error);
+                    this.showToast('Initialization failed: ' + error.message, 'error');
+                } finally {
+                    this.hideLoading();
+                }
+            },
+            
+            // Load data from localStorage
+            loadData() {
+                try {
+                    this.state.employees = JSON.parse(localStorage.getItem(this.config.storage.employees)) || [];
+                    this.state.attendance = JSON.parse(localStorage.getItem(this.config.storage.attendance)) || {};
+                    this.state.schedule = JSON.parse(localStorage.getItem(this.config.storage.schedule)) || {};
+                    this.state.requests = JSON.parse(localStorage.getItem(this.config.storage.requests)) || [];
+                    this.state.logs = JSON.parse(localStorage.getItem(this.config.storage.logs)) || [];
+                    this.state.settings = JSON.parse(localStorage.getItem(this.config.storage.settings)) || {};
+                    
+                    // Set default PIN if not set
+                    if (!this.state.settings.pin) {
+                        this.state.settings.pin = this.config.settings.defaultPin;
+                        this.saveSettings();
+                    }
+                    
+                    this.log('System', 'Data loaded successfully');
+                } catch (error) {
+                    this.log('Error', 'Failed to load data: ' + error.message);
+                }
+            },
+            
+            // Save data to localStorage
+            saveData() {
+                try {
+                    localStorage.setItem(this.config.storage.employees, JSON.stringify(this.state.employees));
+                    localStorage.setItem(this.config.storage.attendance, JSON.stringify(this.state.attendance));
+                    localStorage.setItem(this.config.storage.schedule, JSON.stringify(this.state.schedule));
+                    localStorage.setItem(this.config.storage.requests, JSON.stringify(this.state.requests));
+                    localStorage.setItem(this.config.storage.logs, JSON.stringify(this.state.logs));
+                    localStorage.setItem(this.config.storage.settings, JSON.stringify(this.state.settings));
+                } catch (error) {
+                    this.showToast('Failed to save data. Storage might be full.', 'error');
+                    this.log('Error', 'Save failed: ' + error.message);
+                }
+            },
+            
+            // Save settings only
+            saveSettings() {
+                localStorage.setItem(this.config.storage.settings, JSON.stringify(this.state.settings));
+            },
+            
+            // Initialize UI components
+            initUI() {
+                // Populate date selectors
+                this.populateDateSelectors();
+                
+                // Populate employee selects in modals
+                this.populateEmployeeSelects();
+                
+                // Set current date in date inputs
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('attendanceDate')?.value = today;
+                document.getElementById('overtimeDate')?.value = today;
+                document.getElementById('requestStart')?.value = today;
+                document.getElementById('employeeJoinDate')?.value = today;
+                
+                // Initialize event listeners
+                this.initEventListeners();
+                
+                // Load theme preference
+                this.loadTheme();
+            },
+            
+            // Populate date selectors
+            populateDateSelectors() {
+                // Attendance month/year selectors
+                const monthSelect = document.getElementById('attendanceMonth');
+                const yearSelect = document.getElementById('attendanceYear');
+                
+                if (monthSelect) {
+                    const months = [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    
+                    monthSelect.innerHTML = months.map((month, index) => 
+                        `<option value="${index}" ${index === this.state.currentMonth ? 'selected' : ''}>${month}</option>`
+                    ).join('');
+                }
+                
+                if (yearSelect) {
+                    const currentYear = new Date().getFullYear();
+                    const years = [];
+                    for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+                        years.push(i);
+                    }
+                    
+                    yearSelect.innerHTML = years.map(year => 
+                        `<option value="${year}" ${year === this.state.currentYear ? 'selected' : ''}>${year}</option>`
+                    ).join('');
+                }
+            },
+            
+            // Populate employee selectors in modals
+            populateEmployeeSelects() {
+                const selects = [
+                    'attendanceEmployee',
+                    'overtimeEmployee',
+                    'requestEmployee'
+                ];
+                
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = this.state.employees.map(emp => 
+                            `<option value="${emp.id}">${emp.name} (${emp.code})</option>`
+                        ).join('');
+                    }
+                });
+            },
+            
+            // Initialize event listeners
+            initEventListeners() {
+                // Close modal on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.hideAllModals();
+                    }
+                });
+                
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.system-menu')) {
+                        document.getElementById('sysDropdown')?.classList.remove('show');
+                    }
+                });
+            },
+            
+            // Switch between views
+            switchView(view) {
+                if (this.state.isLocked) {
+                    this.showToast('System is locked', 'error');
+                    return;
+                }
+                
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Remove active class from all tabs
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected view
+                const viewElement = document.getElementById(view + 'View');
+                if (viewElement) {
+                    viewElement.classList.add('active');
+                    this.state.currentView = view;
+                    
+                    // Update the active tab
+                    document.querySelectorAll('.nav-tab').forEach(tab => {
+                        if (tab.textContent.includes(this.getViewName(view))) {
+                            tab.classList.add('active');
+                        }
+                    });
+                    
+                    // Render the view
+                    this.renderView(view);
+                    
+                    this.log('Navigation', `Switched to ${view} view`);
+                }
+            },
+            
+            // Get view name from ID
+            getViewName(viewId) {
+                const viewNames = {
+                    dashboard: 'Dashboard',
+                    employees: 'Employees',
+                    attendance: 'Attendance',
+                    schedule: 'Schedule',
+                    requests: 'Leave Requests',
+                    reports: 'Reports'
+                };
+                return viewNames[viewId] || viewId;
+            },
+            
+            // Render specific view
+            renderView(view) {
+                switch (view) {
+                    case 'dashboard':
+                        this.renderDashboard();
+                        break;
+                    case 'employees':
+                        this.renderEmployees();
+                        break;
+                    case 'attendance':
+                        this.renderAttendance();
+                        break;
+                    case 'schedule':
+                        this.renderSchedule();
+                        break;
+                    case 'requests':
+                        this.renderRequests();
+                        break;
+                    case 'reports':
+                        this.renderReports();
+                        break;
+                }
+            },
+            
+            // Update dashboard
+            updateDashboard() {
+                // Update statistics
+                document.getElementById('statEmployees').textContent = this.state.employees.length;
+                
+                // Calculate attendance rate for current month
+                const attendanceRate = this.calculateAttendanceRate();
+                document.getElementById('statAttendance').textContent = attendanceRate + '%';
+                
+                // Calculate total overtime hours
+                const overtimeHours = this.calculateTotalOvertime();
+                document.getElementById('statOvertime').textContent = overtimeHours;
+                
+                // Count pending requests
+                const pendingRequests = this.state.requests.filter(r => r.status === 'pending').length;
+                document.getElementById('statRequests').textContent = pendingRequests;
+                
+                // Update recent activity
+                this.updateRecentActivity();
+            },
+            
+            // Calculate attendance rate for current month
+            calculateAttendanceRate() {
+                if (this.state.employees.length === 0) return 0;
+                
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                const key = `${currentYear}_${currentMonth}`;
+                
+                let presentCount = 0;
+                let totalCount = 0;
+                
+                this.state.employees.forEach(emp => {
+                    if (this.state.attendance[key] && this.state.attendance[key][emp.id]) {
+                        const monthlyAttendance = this.state.attendance[key][emp.id];
+                        Object.values(monthlyAttendance).forEach(record => {
+                            if (record.status === 'present') presentCount++;
+                            totalCount++;
+                        });
+                    }
+                });
+                
+                return totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+            },
+            
+            // Calculate total overtime hours
+            calculateTotalOvertime() {
+                let totalOvertime = 0;
+                
+                Object.values(this.state.attendance).forEach(month => {
+                    Object.values(month).forEach(employee => {
+                        Object.values(employee).forEach(record => {
+                            if (record.overtime) {
+                                totalOvertime += parseFloat(record.overtime) || 0;
+                            }
+                        });
+                    });
+                });
+                
+                return totalOvertime.toFixed(1);
+            },
+            
+            // Update recent activity
+            updateRecentActivity() {
+                const tableBody = document.querySelector('#recentActivityTable tbody');
+                if (!tableBody) return;
+                
+                // Create recent activities from logs
+                const recentLogs = this.state.logs.slice(-10).reverse();
+                
+                tableBody.innerHTML = recentLogs.map(log => {
+                    const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const date = new Date(log.timestamp).toLocaleDateString();
+                    
+                    let icon = 'fa-info-circle';
+                    let statusClass = 'status-pending';
+                    
+                    if (log.level === 'Success') {
+                        icon = 'fa-check-circle';
+                        statusClass = 'status-approved';
+                    } else if (log.level === 'Error') {
+                        icon = 'fa-exclamation-circle';
+                        statusClass = 'status-rejected';
+                    }
+                    
+                    return `
+                        <tr>
+                            <td>${date} ${time}</td>
+                            <td>${log.user || 'System'}</td>
+                            <td>${log.action || log.message}</td>
+                            <td>${log.details || '-'}</td>
+                            <td><span class="status-badge ${statusClass}"><i class="fas ${icon}"></i> ${log.level}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            // Render employees table
+            renderEmployees() {
+                const tableBody = document.querySelector('#employeesTable tbody');
+                if (!tableBody) return;
+                
+                const filteredEmployees = this.state.employees.filter(emp => 
+                    emp.name.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    emp.code.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    emp.position?.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    emp.department?.toLowerCase().includes(this.state.searchTerm.toLowerCase())
+                );
+                
+                tableBody.innerHTML = filteredEmployees.map(emp => {
+                    // Get attendance status for today
+                    const today = new Date();
+                    const key = `${today.getFullYear()}_${today.getMonth()}`;
+                    const todayAttendance = this.state.attendance[key]?.[emp.id]?.[today.getDate()];
+                    let status = 'Present';
+                    let statusClass = 'status-present';
+                    
+                    if (todayAttendance) {
+                        status = todayAttendance.status.charAt(0).toUpperCase() + todayAttendance.status.slice(1);
+                        statusClass = `status-${todayAttendance.status}`;
+                    } else if (new Date().getDay() === parseInt(emp.weeklyOff)) {
+                        status = 'Weekly Off';
+                        statusClass = 'status-vacation';
+                    }
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="employee-card">
+                                    <img src="${emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=FF6B35&color=fff&size=40`}" 
+                                         class="employee-avatar">
+                                    <div class="employee-info">
+                                        <div class="employee-name">${emp.name}</div>
+                                        <div class="employee-meta">ID: ${emp.code} | ${emp.department || 'No Department'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${emp.position || '-'}</td>
+                            <td>${emp.department || '-'}</td>
+                            <td>${emp.phone || '-'}<br><small>${emp.email || ''}</small></td>
+                            <td>${emp.joinDate ? new Date(emp.joinDate).toLocaleDateString() : '-'}</td>
+                            <td><span class="status-badge ${statusClass}">${status}</span></td>
+                            <td class="no-print">
+                                <button class="btn btn-secondary" onclick="CCM.editEmployee('${emp.id}')" style="padding: 6px 12px; font-size: 12px;">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger" onclick="CCM.confirmDeleteEmployee('${emp.id}')" style="padding: 6px 12px; font-size: 12px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                if (filteredEmployees.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-users" style="font-size: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
+                                <div>No employees found. Add your first employee!</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            },
+            
+            // Search employees
+            searchEmployees() {
+                const searchInput = document.getElementById('employeeSearch');
+                if (searchInput) {
+                    this.state.searchTerm = searchInput.value;
+                    this.renderEmployees();
+                }
+            },
+            
+            // Edit employee
+            editEmployee(employeeId) {
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                if (!employee) return;
+                
+                this.state.currentEmployeeId = employeeId;
+                
+                // Fill form
+                document.getElementById('employeeId').value = employeeId;
+                document.getElementById('employeeModalTitle').textContent = 'Edit Employee';
+                document.getElementById('employeeName').value = employee.name;
+                document.getElementById('employeeCode').value = employee.code;
+                document.getElementById('employeePosition').value = employee.position || '';
+                document.getElementById('employeeDepartment').value = employee.department || '';
+                document.getElementById('employeePhone').value = employee.phone || '';
+                document.getElementById('employeeEmail').value = employee.email || '';
+                document.getElementById('employeeJoinDate').value = employee.joinDate || '';
+                document.getElementById('employeeWeeklyOff').value = employee.weeklyOff || '';
+                document.getElementById('employeeAddress').value = employee.address || '';
+                
+                // Set photo
+                const photoElement = document.getElementById('employeePhoto');
+                if (employee.photo) {
+                    photoElement.src = employee.photo;
+                } else {
+                    photoElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(employee.name)}&background=FF6B35&color=fff&size=100`;
+                }
+                
+                // Show delete button
+                document.getElementById('deleteEmployeeBtn').style.display = 'inline-block';
+                
+                // Show modal
+                this.showModal('employee');
+            },
+            
+            // Show employee modal for adding new employee
+            showEmployeeModal() {
+                this.state.currentEmployeeId = null;
+                
+                // Reset form
+                document.getElementById('employeeId').value = '';
+                document.getElementById('employeeModalTitle').textContent = 'Add New Employee';
+                document.getElementById('employeeName').value = '';
+                document.getElementById('employeeCode').value = '';
+                document.getElementById('employeePosition').value = '';
+                document.getElementById('employeeDepartment').value = '';
+                document.getElementById('employeePhone').value = '';
+                document.getElementById('employeeEmail').value = '';
+                document.getElementById('employeeJoinDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('employeeWeeklyOff').value = '';
+                document.getElementById('employeeAddress').value = '';
+                document.getElementById('employeePhoto').src = 'https://ui-avatars.com/api/?name=Employee&background=FF6B35&color=fff&size=100';
+                
+                // Hide delete button
+                document.getElementById('deleteEmployeeBtn').style.display = 'none';
+                
+                // Show modal
+                this.showModal('employee');
+            },
+            
+            // Save employee
+            saveEmployee() {
+                const id = document.getElementById('employeeId').value;
+                const name = document.getElementById('employeeName').value.trim();
+                const code = document.getElementById('employeeCode').value.trim();
+                
+                // Validation
+                if (!name || !code) {
+                    this.showToast('Name and Employee ID are required', 'error');
+                    return;
+                }
+                
+                const employeeData = {
+                    name,
+                    code,
+                    position: document.getElementById('employeePosition').value.trim(),
+                    department: document.getElementById('employeeDepartment').value,
+                    phone: document.getElementById('employeePhone').value.trim(),
+                    email: document.getElementById('employeeEmail').value.trim(),
+                    joinDate: document.getElementById('employeeJoinDate').value,
+                    weeklyOff: document.getElementById('employeeWeeklyOff').value,
+                    address: document.getElementById('employeeAddress').value.trim(),
+                    photo: document.getElementById('employeePhoto').src
+                };
+                
+                if (id) {
+                    // Update existing employee
+                    const index = this.state.employees.findIndex(emp => emp.id === id);
+                    if (index !== -1) {
+                        this.state.employees[index] = { ...this.state.employees[index], ...employeeData };
+                        this.log('Employee', `Updated employee: ${name} (${code})`, 'Success');
+                    }
+                } else {
+                    // Add new employee
+                    employeeData.id = 'emp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    employeeData.createdAt = new Date().toISOString();
+                    this.state.employees.push(employeeData);
+                    this.log('Employee', `Added new employee: ${name} (${code})`, 'Success');
+                }
+                
+                // Save and update UI
+                this.saveData();
+                this.renderEmployees();
+                this.updateDashboard();
+                this.populateEmployeeSelects();
+                this.hideModal('employee');
+                this.showToast(`Employee ${id ? 'updated' : 'added'} successfully`, 'success');
+            },
+            
+            // Confirm employee deletion
+            confirmDeleteEmployee(employeeId) {
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                if (!employee) return;
+                
+                if (confirm(`Are you sure you want to delete ${employee.name}? This will also delete all attendance records and schedules for this employee.`)) {
+                    this.deleteEmployee(employeeId);
+                }
+            },
+            
+            // Delete employee
+            deleteEmployee(employeeId = null) {
+                const id = employeeId || this.state.currentEmployeeId;
+                if (!id) return;
+                
+                const employee = this.state.employees.find(emp => emp.id === id);
+                if (!employee) return;
+                
+                // Remove employee from array
+                this.state.employees = this.state.employees.filter(emp => emp.id !== id);
+                
+                // Remove attendance records
+                Object.keys(this.state.attendance).forEach(key => {
+                    if (this.state.attendance[key][id]) {
+                        delete this.state.attendance[key][id];
+                    }
+                });
+                
+                // Remove schedule
+                if (this.state.schedule[id]) {
+                    delete this.state.schedule[id];
+                }
+                
+                // Remove leave requests
+                this.state.requests = this.state.requests.filter(req => req.employeeId !== id);
+                
+                // Save and update UI
+                this.saveData();
+                this.renderEmployees();
+                this.updateDashboard();
+                this.populateEmployeeSelects();
+                this.hideModal('employee');
+                
+                this.log('Employee', `Deleted employee: ${employee.name} (${employee.code})`, 'Warning');
+                this.showToast('Employee deleted successfully', 'success');
+            },
+            
+            // Render attendance table
+            renderAttendance() {
+                const monthSelect = document.getElementById('attendanceMonth');
+                const yearSelect = document.getElementById('attendanceYear');
+                
+                if (monthSelect) this.state.currentMonth = parseInt(monthSelect.value);
+                if (yearSelect) this.state.currentYear = parseInt(yearSelect.value);
+                
+                const daysInMonth = new Date(this.state.currentYear, this.state.currentMonth + 1, 0).getDate();
+                const key = `${this.state.currentYear}_${this.state.currentMonth}`;
+                
+                // Build table header with days
+                const headerRow = document.querySelector('#attendanceTable thead tr');
+                if (headerRow) {
+                    let headerHTML = '<th>Employee</th>';
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(this.state.currentYear, this.state.currentMonth, day);
+                        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                        headerHTML += `<th>${day}<br><small>${dayName}</small></th>`;
+                    }
+                    headerHTML += '<th>Total</th>';
+                    headerRow.innerHTML = headerHTML;
+                }
+                
+                // Build table body
+                const tableBody = document.querySelector('#attendanceTable tbody');
+                if (!tableBody) return;
+                
+                const filteredEmployees = this.state.employees.filter(emp => 
+                    emp.name.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    emp.code.toLowerCase().includes(this.state.searchTerm.toLowerCase())
+                );
+                
+                tableBody.innerHTML = filteredEmployees.map(emp => {
+                    let rowHTML = `
+                        <td>
+                            <div class="employee-card">
+                                <img src="${emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=FF6B35&color=fff&size=40`}" 
+                                     class="employee-avatar">
+                                <div class="employee-info">
+                                    <div class="employee-name">${emp.name}</div>
+                                    <div class="employee-meta">${emp.code}</div>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    
+                    let presentCount = 0;
+                    
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(this.state.currentYear, this.state.currentMonth, day);
+                        const isWeeklyOff = date.getDay() === parseInt(emp.weeklyOff);
+                        
+                        let status = '-';
+                        let statusClass = '';
+                        let title = 'Click to edit';
+                        
+                        if (isWeeklyOff) {
+                            status = 'WO';
+                            statusClass = 'off';
+                            title = 'Weekly Off';
+                        } else if (this.state.attendance[key] && this.state.attendance[key][emp.id] && this.state.attendance[key][emp.id][day]) {
+                            const record = this.state.attendance[key][emp.id][day];
+                            status = record.status.charAt(0).toUpperCase();
+                            statusClass = record.status;
+                            title = `${record.status.toUpperCase()} | ${record.checkIn || ''} - ${record.checkOut || ''}`;
+                            
+                            if (record.status === 'present') presentCount++;
+                        }
+                        
+                        rowHTML += `
+                            <td class="${statusClass}" title="${title}" 
+                                onclick="CCM.editAttendanceDay('${emp.id}', ${day}, '${statusClass}')"
+                                style="cursor: pointer; text-align: center; font-weight: 600;">
+                                ${status}
+                            </td>
+                        `;
+                    }
+                    
+                    // Add total column
+                    rowHTML += `<td style="font-weight: 700; text-align: center;">${presentCount}/${daysInMonth}</td>`;
+                    
+                    return `<tr>${rowHTML}</tr>`;
+                }).join('');
+            },
+            
+            // Edit attendance for a specific day
+            editAttendanceDay(employeeId, day, currentStatus) {
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                if (!employee) return;
+                
+                const key = `${this.state.currentYear}_${this.state.currentMonth}`;
+                const existingRecord = this.state.attendance[key]?.[employeeId]?.[day];
+                
+                // Populate modal
+                document.getElementById('attendanceEmployee').value = employeeId;
+                document.getElementById('attendanceDate').value = `${this.state.currentYear}-${String(this.state.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                if (existingRecord) {
+                    document.getElementById('attendanceStatus').value = existingRecord.status;
+                    document.getElementById('checkInTime').value = existingRecord.checkIn || '08:00';
+                    document.getElementById('checkOutTime').value = existingRecord.checkOut || '17:00';
+                    document.getElementById('attendanceNotes').value = existingRecord.notes || '';
+                } else {
+                    document.getElementById('attendanceStatus').value = 'present';
+                    document.getElementById('checkInTime').value = '08:00';
+                    document.getElementById('checkOutTime').value = '17:00';
+                    document.getElementById('attendanceNotes').value = '';
+                }
+                
+                // Show modal
+                this.showModal('attendance');
+            },
+            
+            // Save attendance record
+            saveAttendance() {
+                const employeeId = document.getElementById('attendanceEmployee').value;
+                const dateStr = document.getElementById('attendanceDate').value;
+                const status = document.getElementById('attendanceStatus').value;
+                const checkIn = document.getElementById('checkInTime').value;
+                const checkOut = document.getElementById('checkOutTime').value;
+                const notes = document.getElementById('attendanceNotes').value;
+                
+                if (!employeeId || !dateStr) {
+                    this.showToast('Please select employee and date', 'error');
+                    return;
+                }
+                
+                const date = new Date(dateStr);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const day = date.getDate();
+                const key = `${year}_${month}`;
+                
+                // Initialize if needed
+                if (!this.state.attendance[key]) this.state.attendance[key] = {};
+                if (!this.state.attendance[key][employeeId]) this.state.attendance[key][employeeId] = {};
+                
+                // Save record
+                this.state.attendance[key][employeeId][day] = {
+                    status,
+                    checkIn,
+                    checkOut,
+                    notes,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Save and update UI
+                this.saveData();
+                this.renderAttendance();
+                this.updateDashboard();
+                this.hideModal('attendance');
+                
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                this.log('Attendance', `Marked ${status} for ${employee?.name} on ${dateStr}`, 'Success');
+                this.showToast('Attendance saved successfully', 'success');
+            },
+            
+            // Save overtime
+            saveOvertime() {
+                const employeeId = document.getElementById('overtimeEmployee').value;
+                const dateStr = document.getElementById('overtimeDate').value;
+                const hours = parseFloat(document.getElementById('overtimeHours').value);
+                const reason = document.getElementById('overtimeReason').value;
+                
+                if (!employeeId || !dateStr || isNaN(hours) || hours <= 0) {
+                    this.showToast('Please fill all fields correctly', 'error');
+                    return;
+                }
+                
+                const date = new Date(dateStr);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const day = date.getDate();
+                const key = `${year}_${month}`;
+                
+                // Initialize if needed
+                if (!this.state.attendance[key]) this.state.attendance[key] = {};
+                if (!this.state.attendance[key][employeeId]) this.state.attendance[key][employeeId] = {};
+                
+                // Get or create attendance record
+                if (!this.state.attendance[key][employeeId][day]) {
+                    this.state.attendance[key][employeeId][day] = {
+                        status: 'present',
+                        checkIn: '08:00',
+                        checkOut: '17:00'
+                    };
+                }
+                
+                // Add overtime
+                this.state.attendance[key][employeeId][day].overtime = hours;
+                this.state.attendance[key][employeeId][day].overtimeReason = reason;
+                this.state.attendance[key][employeeId][day].updatedAt = new Date().toISOString();
+                
+                // Save and update UI
+                this.saveData();
+                this.renderAttendance();
+                this.updateDashboard();
+                this.hideModal('overtime');
+                
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                this.log('Overtime', `Added ${hours} hours overtime for ${employee?.name}`, 'Success');
+                this.showToast('Overtime saved successfully', 'success');
+            },
+            
+            // Render schedule table
+            renderSchedule() {
+                const startOfWeek = new Date(this.state.scheduleWeek);
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start from Sunday
+                
+                const weekDays = [];
+                for (let i = 0; i < 7; i++) {
+                    const day = new Date(startOfWeek);
+                    day.setDate(startOfWeek.getDate() + i);
+                    weekDays.push(day);
+                }
+                
+                // Update week range display
+                const weekRangeElement = document.getElementById('weekRange');
+                if (weekRangeElement) {
+                    const firstDay = weekDays[0];
+                    const lastDay = weekDays[6];
+                    weekRangeElement.textContent = 
+                        `${firstDay.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ` +
+                        `${lastDay.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                }
+                
+                // Build table
+                const table = document.getElementById('scheduleTable');
+                if (!table) return;
+                
+                // Build header
+                let headerHTML = '<thead><tr><th>Employee</th>';
+                weekDays.forEach(day => {
+                    const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
+                    const dateNum = day.getDate();
+                    const isToday = day.toDateString() === new Date().toDateString();
+                    headerHTML += `<th${isToday ? ' style="background: var(--primary); color: white;"' : ''}>
+                        ${dayName}<br><strong>${dateNum}</strong>
+                    </th>`;
+                });
+                headerHTML += '</tr></thead>';
+                
+                // Build body
+                let bodyHTML = '<tbody>';
+                this.state.employees.forEach(emp => {
+                    bodyHTML += `<tr><td>
+                        <div class="employee-card">
+                            <img src="${emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=FF6B35&color=fff&size=40`}" 
+                                 class="employee-avatar">
+                            <div class="employee-info">
+                                <div class="employee-name">${emp.name}</div>
+                                <div class="employee-meta">${emp.code}</div>
+                            </div>
+                        </div>
+                    </td>`;
+                    
+                    weekDays.forEach(day => {
+                        const dayOfWeek = day.getDay();
+                        const empSchedule = this.state.schedule[emp.id];
+                        let scheduleText = '-';
+                        let title = 'Click to edit schedule';
+                        
+                        if (empSchedule && empSchedule[dayOfWeek]) {
+                            const shift = empSchedule[dayOfWeek];
+                            if (shift.off) {
+                                scheduleText = 'OFF';
+                                title = 'Day Off';
+                            } else if (shift.start && shift.end) {
+                                scheduleText = `${shift.start} - ${shift.end}`;
+                                title = `${shift.start} to ${shift.end}`;
+                            }
+                        } else if (dayOfWeek === parseInt(emp.weeklyOff)) {
+                            scheduleText = 'OFF';
+                            title = 'Weekly Off';
+                        }
+                        
+                        bodyHTML += `<td onclick="CCM.editSchedule('${emp.id}', ${dayOfWeek})" 
+                                    title="${title}" style="cursor: pointer; text-align: center;">
+                            ${scheduleText}
+                        </td>`;
+                    });
+                    
+                    bodyHTML += '</tr>';
+                });
+                bodyHTML += '</tbody>';
+                
+                table.innerHTML = headerHTML + bodyHTML;
+            },
+            
+            // Edit schedule
+            editSchedule(employeeId, dayOfWeek) {
+                // This would open a schedule editing modal
+                // For now, just show a prompt
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                
+                const currentSchedule = this.state.schedule[employeeId]?.[dayOfWeek];
+                let currentValue = currentSchedule ? 
+                    (currentSchedule.off ? 'OFF' : `${currentSchedule.start || ''}-${currentSchedule.end || ''}`) : 
+                    (dayOfWeek === parseInt(employee.weeklyOff) ? 'OFF' : '');
+                
+                const newSchedule = prompt(
+                    `Edit schedule for ${employee?.name} on ${dayNames[dayOfWeek]}:\n` +
+                    `Enter schedule (e.g., "08:00-17:00") or "OFF" for day off:`,
+                    currentValue
+                );
+                
+                if (newSchedule !== null) {
+                    if (!this.state.schedule[employeeId]) {
+                        this.state.schedule[employeeId] = {};
+                    }
+                    
+                    if (newSchedule.toUpperCase() === 'OFF') {
+                        this.state.schedule[employeeId][dayOfWeek] = { off: true };
+                    } else {
+                        const [start, end] = newSchedule.split('-');
+                        if (start && end) {
+                            this.state.schedule[employeeId][dayOfWeek] = { start: start.trim(), end: end.trim() };
+                        }
+                    }
+                    
+                    this.saveData();
+                    this.renderSchedule();
+                    
+                    this.log('Schedule', `Updated schedule for ${employee?.name} on ${dayNames[dayOfWeek]}`, 'Success');
+                    this.showToast('Schedule updated', 'success');
+                }
+            },
+            
+            // Navigate to previous week
+            prevWeek() {
+                const newDate = new Date(this.state.scheduleWeek);
+                newDate.setDate(newDate.getDate() - 7);
+                this.state.scheduleWeek = newDate;
+                this.renderSchedule();
+            },
+            
+            // Navigate to next week
+            nextWeek() {
+                const newDate = new Date(this.state.scheduleWeek);
+                newDate.setDate(newDate.getDate() + 7);
+                this.state.scheduleWeek = newDate;
+                this.renderSchedule();
+            },
+            
+            // Go to current week
+            todayWeek() {
+                this.state.scheduleWeek = new Date();
+                this.renderSchedule();
+            },
+            
+            // Render leave requests
+            renderRequests() {
+                const tableBody = document.querySelector('#requestsTable tbody');
+                if (!tableBody) return;
+                
+                const filteredRequests = this.state.requests.filter(req => 
+                    req.employeeName.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    req.type.toLowerCase().includes(this.state.searchTerm.toLowerCase()) ||
+                    req.reason.toLowerCase().includes(this.state.searchTerm.toLowerCase())
+                );
+                
+                tableBody.innerHTML = filteredRequests.map(req => {
+                    const employee = this.state.employees.find(emp => emp.id === req.employeeId);
+                    let statusClass = `status-${req.status}`;
+                    let statusIcon = 'fa-clock';
+                    
+                    if (req.status === 'approved') statusIcon = 'fa-check-circle';
+                    if (req.status === 'rejected') statusIcon = 'fa-times-circle';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="employee-card">
+                                    <img src="${employee?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.employeeName)}&background=FF6B35&color=fff&size=40`}" 
+                                         class="employee-avatar">
+                                    <div class="employee-info">
+                                        <div class="employee-name">${req.employeeName}</div>
+                                        <div class="employee-meta">${employee?.code || ''}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${req.type.charAt(0).toUpperCase() + req.type.slice(1)} Leave</td>
+                            <td>
+                                ${new Date(req.startDate).toLocaleDateString()} - 
+                                ${new Date(req.endDate).toLocaleDateString()}
+                            </td>
+                            <td>${req.duration} days</td>
+                            <td>${req.reason || '-'}</td>
+                            <td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${req.status}</span></td>
+                            <td class="no-print">
+                                ${req.status === 'pending' ? `
+                                    <button class="btn btn-success" onclick="CCM.approveRequest('${req.id}')" style="padding: 6px 12px; font-size: 12px;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger" onclick="CCM.rejectRequest('${req.id}')" style="padding: 6px 12px; font-size: 12px;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            // Save leave request
+            saveRequest() {
+                const employeeId = document.getElementById('requestEmployee').value;
+                const type = document.getElementById('requestType').value;
+                const startDate = document.getElementById('requestStart').value;
+                const duration = parseInt(document.getElementById('requestDuration').value);
+                const reason = document.getElementById('requestReason').value;
+                
+                if (!employeeId || !startDate || !duration || duration < 1) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+                
+                const start = new Date(startDate);
+                const end = new Date(start);
+                end.setDate(start.getDate() + duration - 1);
+                
+                const employee = this.state.employees.find(emp => emp.id === employeeId);
+                if (!employee) return;
+                
+                const request = {
+                    id: 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    employeeId,
+                    employeeName: employee.name,
+                    type,
+                    startDate: start.toISOString(),
+                    endDate: end.toISOString(),
+                    duration,
+                    reason,
+                    status: 'pending',
+                    submittedAt: new Date().toISOString()
+                };
+                
+                this.state.requests.push(request);
+                this.saveData();
+                this.renderRequests();
+                this.updateDashboard();
+                this.hideModal('request');
+                
+                this.log('Request', `New ${type} leave request submitted by ${employee.name}`, 'Success');
+                this.showToast('Leave request submitted successfully', 'success');
+            },
+            
+            // Approve leave request
+            approveRequest(requestId) {
+                const request = this.state.requests.find(req => req.id === requestId);
+                if (!request) return;
+                
+                request.status = 'approved';
+                request.processedAt = new Date().toISOString();
+                
+                // Apply leave to attendance records
+                const start = new Date(request.startDate);
+                const end = new Date(request.endDate);
+                
+                for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const day = date.getDate();
+                    const key = `${year}_${month}`;
+                    
+                    if (!this.state.attendance[key]) this.state.attendance[key] = {};
+                    if (!this.state.attendance[key][request.employeeId]) this.state.attendance[key][request.employeeId] = {};
+                    
+                    this.state.attendance[key][request.employeeId][day] = {
+                        status: request.type,
+                        notes: 'Leave request approved',
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+                
+                this.saveData();
+                this.renderRequests();
+                this.renderAttendance();
+                this.updateDashboard();
+                
+                this.log('Request', `Approved leave request for ${request.employeeName}`, 'Success');
+                this.showToast('Leave request approved', 'success');
+            },
+            
+            // Reject leave request
+            rejectRequest(requestId) {
+                const request = this.state.requests.find(req => req.id === requestId);
+                if (!request) return;
+                
+                request.status = 'rejected';
+                request.processedAt = new Date().toISOString();
+                
+                this.saveData();
+                this.renderRequests();
+                this.updateDashboard();
+                
+                this.log('Request', `Rejected leave request for ${request.employeeName}`, 'Warning');
+                this.showToast('Leave request rejected', 'warning');
+            },
+            
+            // Render reports
+            renderReports() {
+                const startDate = document.getElementById('reportStart').value;
+                const endDate = document.getElementById('reportEnd').value;
+                const searchTerm = document.getElementById('reportSearch')?.value || '';
+                
+                // Update report period text
+                const periodElement = document.getElementById('reportPeriod');
+                if (periodElement) {
+                    if (startDate && endDate) {
+                        const start = new Date(startDate).toLocaleDateString();
+                        const end = new Date(endDate).toLocaleDateString();
+                        periodElement.textContent = `Report Period: ${start} - ${end}`;
+                    } else {
+                        periodElement.textContent = 'Please select start and end dates';
+                    }
+                }
+                
+                // Calculate report data
+                const tableBody = document.querySelector('#reportTable tbody');
+                if (!tableBody || !startDate || !endDate) return;
+                
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                const filteredEmployees = this.state.employees.filter(emp => 
+                    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    emp.code.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                
+                tableBody.innerHTML = filteredEmployees.map(emp => {
+                    let workingDays = 0;
+                    let absentDays = 0;
+                    let vacationDays = 0;
+                    let sickDays = 0;
+                    let overtimeHours = 0;
+                    
+                    // Calculate statistics for the period
+                    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                        const year = date.getFullYear();
+                        const month = date.getMonth();
+                        const day = date.getDate();
+                        const key = `${year}_${month}`;
+                        
+                        if (this.state.attendance[key] && this.state.attendance[key][emp.id] && this.state.attendance[key][emp.id][day]) {
+                            const record = this.state.attendance[key][emp.id][day];
+                            
+                            switch (record.status) {
+                                case 'present':
+                                    workingDays++;
+                                    break;
+                                case 'absent':
+                                    absentDays++;
+                                    break;
+                                case 'vacation':
+                                    vacationDays++;
+                                    break;
+                                case 'sick':
+                                    sickDays++;
+                                    break;
+                            }
+                            
+                            if (record.overtime) {
+                                overtimeHours += parseFloat(record.overtime);
+                            }
+                        } else {
+                            // If no record, count as working day (assuming present)
+                            workingDays++;
+                        }
+                    }
+                    
+                    const totalDays = workingDays + absentDays + vacationDays + sickDays;
+                    const attendanceRate = totalDays > 0 ? Math.round((workingDays / totalDays) * 100) : 0;
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="employee-card">
+                                    <img src="${emp.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=FF6B35&color=fff&size=40`}" 
+                                         class="employee-avatar">
+                                    <div class="employee-info">
+                                        <div class="employee-name">${emp.name}</div>
+                                        <div class="employee-meta">${emp.code}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${workingDays}</td>
+                            <td>${absentDays}</td>
+                            <td>${vacationDays}</td>
+                            <td>${sickDays}</td>
+                            <td>${overtimeHours.toFixed(1)}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span>${attendanceRate}%</span>
+                                    <div style="flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                                        <div style="width: ${attendanceRate}%; height: 100%; background: var(--primary);"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            // Calculate request end date
+            calculateRequestEnd() {
+                const startDate = document.getElementById('requestStart').value;
+                const duration = parseInt(document.getElementById('requestDuration').value) || 1;
+                
+                if (startDate) {
+                    const start = new Date(startDate);
+                    const end = new Date(start);
+                    end.setDate(start.getDate() + duration - 1);
+                    document.getElementById('requestEnd').value = end.toISOString().split('T')[0];
+                }
+            },
+            
+            // Show modal
+            showModal(modalName) {
+                if (this.state.isLocked) {
+                    this.showToast('System is locked', 'error');
+                    return;
+                }
+                
+                const modal = document.getElementById(modalName + 'Modal');
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            },
+            
+            // Hide modal
+            hideModal(modalName) {
+                const modal = document.getElementById(modalName + 'Modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            },
+            
+            // Hide all modals
+            hideAllModals() {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            },
+            
+            // Toggle system menu
+            toggleSystemMenu() {
+                const dropdown = document.getElementById('sysDropdown');
+                dropdown.classList.toggle('show');
+            },
+            
+            // Show system information
+            showSystemInfo() {
+                // Calculate storage usage
+                let totalSize = 0;
+                for (let key in localStorage) {
+                    if (localStorage.hasOwnProperty(key)) {
+                        totalSize += localStorage[key].length * 2; // UTF-16 uses 2 bytes per character
+                    }
+                }
+                
+                document.getElementById('storageUsage').textContent = (totalSize / 1024).toFixed(2) + ' KB';
+                document.getElementById('employeeCount').textContent = this.state.employees.length;
+                document.getElementById('lastBackup').textContent = this.state.settings.lastBackup || 'Never';
+                
+                this.showModal('system');
+            },
+            
+            // Show system logs
+            showLogs() {
+                const logsBody = document.getElementById('logsTableBody');
+                if (logsBody) {
+                    logsBody.innerHTML = this.state.logs.slice().reverse().map(log => {
+                        const time = new Date(log.timestamp).toLocaleTimeString();
+                        const date = new Date(log.timestamp).toLocaleDateString();
+                        
+                        let levelClass = '';
+                        if (log.level === 'Success') levelClass = 'status-approved';
+                        if (log.level === 'Error') levelClass = 'status-rejected';
+                        if (log.level === 'Warning') levelClass = 'status-pending';
+                        
+                        return `
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid var(--border);">
+                                    ${date} ${time}
+                                </td>
+                                <td style="padding: 10px; border-bottom: 1px solid var(--border);">
+                                    <span class="status-badge ${levelClass}">${log.level}</span>
+                                </td>
+                                <td style="padding: 10px; border-bottom: 1px solid var(--border);">
+                                    ${log.message}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+                
+                this.showModal('logs');
+            },
+            
+            // Clear system logs
+            clearLogs() {
+                if (confirm('Are you sure you want to clear all system logs?')) {
+                    this.state.logs = [];
+                    this.saveData();
+                    this.showLogs();
+                    this.showToast('Logs cleared', 'success');
+                }
+            },
+            
+            // Export backup
+            exportBackup() {
+                const backupData = {
+                    employees: this.state.employees,
+                    attendance: this.state.attendance,
+                    schedule: this.state.schedule,
+                    requests: this.state.requests,
+                    settings: this.state.settings,
+                    exportedAt: new Date().toISOString(),
+                    system: 'CRISPY CHICKEN CCM v2.0'
+                };
+                
+                const dataStr = JSON.stringify(backupData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `CCM_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                // Update last backup time
+                this.state.settings.lastBackup = new Date().toISOString();
+                this.saveSettings();
+                
+                this.log('System', 'Exported system backup', 'Success');
+                this.showToast('Backup exported successfully', 'success');
+            },
+            
+            // Import CSV
+            importCSV(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    
+                    // Check for required headers
+                    if (!headers.includes('name') || !headers.includes('code')) {
+                        this.showToast('CSV must contain "name" and "code" columns', 'error');
+                        return;
+                    }
+                    
+                    let importedCount = 0;
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        
+                        const values = lines[i].split(',').map(v => v.trim());
+                        const employeeData = {};
+                        
+                        headers.forEach((header, index) => {
+                            if (values[index]) {
+                                employeeData[header] = values[index];
+                            }
+                        });
+                        
+                        // Create employee object
+                        const employee = {
+                            id: 'emp_' + Date.now() + '_' + i + '_' + Math.random().toString(36).substr(2, 9),
+                            name: employeeData.name,
+                            code: employeeData.code,
+                            position: employeeData.position || '',
+                            department: employeeData.department || '',
+                            phone: employeeData.phone || '',
+                            email: employeeData.email || '',
+                            joinDate: employeeData.joindate || new Date().toISOString().split('T')[0],
+                            weeklyOff: employeeData.weeklyoff || '',
+                            address: employeeData.address || '',
+                            createdAt: new Date().toISOString()
+                        };
+                        
+                        this.state.employees.push(employee);
+                        importedCount++;
+                    }
+                    
+                    this.saveData();
+                    this.renderEmployees();
+                    this.updateDashboard();
+                    this.populateEmployeeSelects();
+                    
+                    this.log('System', `Imported ${importedCount} employees from CSV`, 'Success');
+                    this.showToast(`Successfully imported ${importedCount} employees`, 'success');
+                };
+                
+                reader.readAsText(file);
+                
+                // Reset file input
+                event.target.value = '';
+            },
+            
+            // Restore backup
+            restoreBackup(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                if (!confirm('This will replace all current data. Are you sure?')) {
+                    event.target.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        
+                        // Validate backup data
+                        if (!backupData.system || !backupData.system.includes('CRISPY CHICKEN CCM')) {
+                            throw new Error('Invalid backup file format');
+                        }
+                        
+                        // Restore data
+                        this.state.employees = backupData.employees || [];
+                        this.state.attendance = backupData.attendance || {};
+                        this.state.schedule = backupData.schedule || {};
+                        this.state.requests = backupData.requests || [];
+                        this.state.settings = backupData.settings || {};
+                        
+                        this.saveData();
+                        
+                        // Update UI
+                        this.renderEmployees();
+                        this.renderAttendance();
+                        this.renderSchedule();
+                        this.renderRequests();
+                        this.updateDashboard();
+                        this.populateEmployeeSelects();
+                        
+                        this.log('System', 'Restored system from backup', 'Success');
+                        this.showToast('Backup restored successfully', 'success');
+                    } catch (error) {
+                        this.showToast('Failed to restore backup: Invalid file format', 'error');
+                        this.log('Error', 'Backup restore failed: ' + error.message);
+                    }
+                };
+                
+                reader.readAsText(file);
+                
+                // Reset file input
+                event.target.value = '';
+            },
+            
+            // Lock system
+            lockSystem() {
+                this.state.isLocked = true;
+                this.showModal('lock');
+                this.log('System', 'System locked', 'Warning');
+            },
+            
+            // Check lock state
+            checkLockState() {
+                // Check if system should be locked on startup
+                // For now, we'll leave it unlocked by default
+            },
+            
+            // Add PIN digit
+            addPin(digit) {
+                const pinInput = document.getElementById('pinInput');
+                if (pinInput.value.length < 4) {
+                    pinInput.value += digit;
+                }
+            },
+            
+            // Clear PIN
+            clearPin() {
+                document.getElementById('pinInput').value = '';
+            },
+            
+            // Remove last PIN digit
+            backspacePin() {
+                const pinInput = document.getElementById('pinInput');
+                pinInput.value = pinInput.value.slice(0, -1);
+            },
+            
+            // Unlock system
+            unlockSystem() {
+                const enteredPin = document.getElementById('pinInput').value;
+                
+                if (enteredPin === this.state.settings.pin || enteredPin === this.config.settings.defaultPin) {
+                    this.state.isLocked = false;
+                    this.hideModal('lock');
+                    this.clearPin();
+                    this.showToast('System unlocked', 'success');
+                    this.log('System', 'System unlocked', 'Success');
+                } else {
+                    this.showToast('Incorrect PIN', 'error');
+                    this.clearPin();
+                }
+            },
+            
+            // Reset system data
+            resetSystem() {
+                if (confirm('WARNING: This will delete ALL data including employees, attendance, schedules, and requests. This action cannot be undone. Are you absolutely sure?')) {
+                    // Clear all data
+                    this.state.employees = [];
+                    this.state.attendance = {};
+                    this.state.schedule = {};
+                    this.state.requests = [];
+                    this.state.logs = [];
+                    
+                    // Reset settings but keep PIN
+                    const currentPin = this.state.settings.pin;
+                    this.state.settings = { pin: currentPin };
+                    
+                    this.saveData();
+                    
+                    // Update UI
+                    this.renderEmployees();
+                    this.renderAttendance();
+                    this.renderSchedule();
+                    this.renderRequests();
+                    this.updateDashboard();
+                    this.populateEmployeeSelects();
+                    
+                    this.log('System', 'All data reset to default', 'Warning');
+                    this.showToast('All data has been reset', 'warning');
+                }
+            },
+            
+            // Export employee list
+            exportEmployeeList() {
+                if (this.state.employees.length === 0) {
+                    this.showToast('No employees to export', 'warning');
+                    return;
+                }
+                
+                const headers = ['Name', 'Employee ID', 'Position', 'Department', 'Phone', 'Email', 'Join Date'];
+                const csvData = this.state.employees.map(emp => [
+                    emp.name,
+                    emp.code,
+                    emp.position || '',
+                    emp.department || '',
+                    emp.phone || '',
+                    emp.email || '',
+                    emp.joinDate || ''
+                ]);
+                
+                const csvContent = [
+                    headers.join(','),
+                    ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `CCM_Employees_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showToast('Employee list exported', 'success');
+            },
+            
+            // Export report to Excel
+            exportReportExcel() {
+                if (typeof XLSX === 'undefined') {
+                    this.showToast('Excel export library not loaded', 'error');
+                    return;
+                }
+                
+                const startDate = document.getElementById('reportStart').value;
+                const endDate = document.getElementById('reportEnd').value;
+                
+                if (!startDate || !endDate) {
+                    this.showToast('Please select start and end dates', 'error');
+                    return;
+                }
+                
+                const reportData = this.generateReportData(startDate, endDate);
+                
+                if (reportData.length === 0) {
+                    this.showToast('No data to export', 'warning');
+                    return;
+                }
+                
+                const ws = XLSX.utils.json_to_sheet(reportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+                XLSX.writeFile(wb, `CCM_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+                
+                this.showToast('Report exported to Excel', 'success');
+            },
+            
+            // Export report to CSV
+            exportReportCSV() {
+                const startDate = document.getElementById('reportStart').value;
+                const endDate = document.getElementById('reportEnd').value;
+                
+                if (!startDate || !endDate) {
+                    this.showToast('Please select start and end dates', 'error');
+                    return;
+                }
+                
+                const reportData = this.generateReportData(startDate, endDate);
+                
+                if (reportData.length === 0) {
+                    this.showToast('No data to export', 'warning');
+                    return;
+                }
+                
+                const headers = Object.keys(reportData[0]);
+                const csvData = reportData.map(row => 
+                    headers.map(header => `"${row[header] || ''}"`).join(',')
+                );
+                
+                const csvContent = [headers.join(','), ...csvData].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `CCM_Report_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showToast('Report exported to CSV', 'success');
+            },
+            
+            // Generate report data
+            generateReportData(startDate, endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                return this.state.employees.map(emp => {
+                    let workingDays = 0;
+                    let absentDays = 0;
+                    let vacationDays = 0;
+                    let sickDays = 0;
+                    let overtimeHours = 0;
+                    
+                    // Calculate statistics for the period
+                    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                        const year = date.getFullYear();
+                        const month = date.getMonth();
+                        const day = date.getDate();
+                        const key = `${year}_${month}`;
+                        
+                        if (this.state.attendance[key] && this.state.attendance[key][emp.id] && this.state.attendance[key][emp.id][day]) {
+                            const record = this.state.attendance[key][emp.id][day];
+                            
+                            switch (record.status) {
+                                case 'present':
+                                    workingDays++;
+                                    break;
+                                case 'absent':
+                                    absentDays++;
+                                    break;
+                                case 'vacation':
+                                    vacationDays++;
+                                    break;
+                                case 'sick':
+                                    sickDays++;
+                                    break;
+                            }
+                            
+                            if (record.overtime) {
+                                overtimeHours += parseFloat(record.overtime);
+                            }
+                        } else {
+                            // If no record, count as working day (assuming present)
+                            workingDays++;
+                        }
+                    }
+                    
+                    const totalDays = workingDays + absentDays + vacationDays + sickDays;
+                    const attendanceRate = totalDays > 0 ? Math.round((workingDays / totalDays) * 100) : 0;
+                    
+                    return {
+                        'Employee Name': emp.name,
+                        'Employee ID': emp.code,
+                        'Department': emp.department || 'N/A',
+                        'Position': emp.position || 'N/A',
+                        'Working Days': workingDays,
+                        'Absent Days': absentDays,
+                        'Vacation Days': vacationDays,
+                        'Sick Days': sickDays,
+                        'Total Days': totalDays,
+                        'Overtime Hours': overtimeHours.toFixed(1),
+                        'Attendance Rate': attendanceRate + '%'
+                    };
+                });
+            },
+            
+            // Print report
+            printReport() {
+                const startDate = document.getElementById('reportStart').value;
+                const endDate = document.getElementById('reportEnd').value;
+                
+                if (!startDate || !endDate) {
+                    this.showToast('Please select start and end dates', 'error');
+                    return;
+                }
+                
+                const printContainer = document.getElementById('printContainer');
+                const reportData = this.generateReportData(startDate, endDate);
+                
+                let html = `
+                    <div style="padding: 20mm; font-family: Arial, sans-serif;">
+                        <h1 style="text-align: center; margin-bottom: 5mm; color: #333;">
+                            🍗 CRISPY CHICKEN CCM
+                        </h1>
+                        <h2 style="text-align: center; margin-bottom: 10mm; color: #666; font-size: 18px;">
+                            Attendance Summary Report
+                        </h2>
+                        <p style="text-align: center; margin-bottom: 15mm; color: #999;">
+                            Period: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}<br>
+                            Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
+                        </p>
+                `;
+                
+                if (reportData.length > 0) {
+                    html += `
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10mm;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Employee</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Working Days</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Absent Days</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Vacation Days</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sick Days</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Overtime Hours</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Attendance Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    reportData.forEach(row => {
+                        html += `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${row['Employee Name']}<br><small>${row['Employee ID']}</small></td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Working Days']}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Absent Days']}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Vacation Days']}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Sick Days']}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Overtime Hours']}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${row['Attendance Rate']}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    html += `
+                        <p style="text-align: center; color: #999; margin-top: 20mm;">
+                            No data available for the selected period.
+                        </p>
+                    `;
+                }
+                
+                html += `
+                        <div style="margin-top: 15mm; text-align: center; font-size: 12px; color: #999;">
+                            CRISPY CHICKEN CCM - Employee Management System v2.0<br>
+                            This is a computer-generated report.
+                        </div>
+                    </div>
+                `;
+                
+                printContainer.innerHTML = html;
+                
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        printContainer.innerHTML = '';
+                    }, 100);
+                }, 100);
+            },
+            
+            // Print attendance
+            printAttendance() {
+                const monthSelect = document.getElementById('attendanceMonth');
+                const yearSelect = document.getElementById('attendanceYear');
+                const month = monthSelect ? parseInt(monthSelect.value) : new Date().getMonth();
+                const year = yearSelect ? parseInt(yearSelect.value) : new Date().getFullYear();
+                
+                const monthNames = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const key = `${year}_${month}`;
+                
+                let html = `
+                    <div style="padding: 20mm; font-family: Arial, sans-serif;">
+                        <h1 style="text-align: center; margin-bottom: 5mm; color: #333;">
+                            🍗 CRISPY CHICKEN CCM
+                        </h1>
+                        <h2 style="text-align: center; margin-bottom: 10mm; color: #666; font-size: 18px;">
+                            Attendance Sheet - ${monthNames[month]} ${year}
+                        </h2>
+                        <p style="text-align: center; margin-bottom: 15mm; color: #999;">
+                            Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
+                        </p>
+                `;
+                
+                if (this.state.employees.length > 0) {
+                    html += `
+                        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="border: 1px solid #ddd; padding: 6px; text-align: left; width: 150px;">Employee</th>
+                    `;
+                    
+                    // Add day headers
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(year, month, day);
+                        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                        html += `<th style="border: 1px solid #ddd; padding: 4px; text-align: center; width: 20px;">${day}<br><small>${dayName}</small></th>`;
+                    }
+                    
+                    html += `<th style="border: 1px solid #ddd; padding: 6px; text-align: center;">Total</th>`;
+                    html += `</tr></thead><tbody>`;
+                    
+                    // Add employee rows
+                    this.state.employees.forEach(emp => {
+                        let presentCount = 0;
+                        
+                        html += `<tr><td style="border: 1px solid #ddd; padding: 6px;">${emp.name}<br><small>${emp.code}</small></td>`;
+                        
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const date = new Date(year, month, day);
+                            const isWeeklyOff = date.getDay() === parseInt(emp.weeklyOff);
+                            
+                            let status = '-';
+                            let bgColor = '#ffffff';
+                            
+                            if (isWeeklyOff) {
+                                status = 'WO';
+                                bgColor = '#f3f4f6';
+                            } else if (this.state.attendance[key] && this.state.attendance[key][emp.id] && this.state.attendance[key][emp.id][day]) {
+                                const record = this.state.attendance[key][emp.id][day];
+                                status = record.status.charAt(0).toUpperCase();
+                                
+                                if (record.status === 'present') {
+                                    bgColor = '#d1fae5';
+                                    presentCount++;
+                                } else if (record.status === 'absent') {
+                                    bgColor = '#fee2e2';
+                                } else if (record.status === 'vacation') {
+                                    bgColor = '#fef3c7';
+                                } else if (record.status === 'sick') {
+                                    bgColor = '#e0e7ff';
+                                }
+                            }
+                            
+                            html += `<td style="border: 1px solid #ddd; padding: 4px; text-align: center; background: ${bgColor};">${status}</td>`;
+                        }
+                        
+                        html += `<td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-weight: bold;">${presentCount}/${daysInMonth}</td></tr>`;
+                    });
+                    
+                    html += `</tbody></table>`;
+                    
+                    // Legend
+                    html += `
+                        <div style="margin-top: 10mm; font-size: 10px;">
+                            <strong>Legend:</strong>
+                            <span style="margin-left: 5mm;">P = Present</span>
+                            <span style="margin-left: 5mm;">A = Absent</span>
+                            <span style="margin-left: 5mm;">V = Vacation</span>
+                            <span style="margin-left: 5mm;">S = Sick</span>
+                            <span style="margin-left: 5mm;">WO = Weekly Off</span>
+                            <span style="margin-left: 5mm;">- = No Record</span>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <p style="text-align: center; color: #999; margin-top: 20mm;">
+                            No employees found.
+                        </p>
+                    `;
+                }
+                
+                html += `
+                        <div style="margin-top: 15mm; text-align: center; font-size: 12px; color: #999;">
+                            CRISPY CHICKEN CCM - Employee Management System v2.0<br>
+                            This is a computer-generated report.
+                        </div>
+                    </div>
+                `;
+                
+                const printContainer = document.getElementById('printContainer');
+                printContainer.innerHTML = html;
+                
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        printContainer.innerHTML = '';
+                    }, 100);
+                }, 100);
+            },
+            
+            // Print schedule
+            printSchedule() {
+                const startOfWeek = new Date(this.state.scheduleWeek);
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                
+                const weekDays = [];
+                for (let i = 0; i < 7; i++) {
+                    const day = new Date(startOfWeek);
+                    day.setDate(startOfWeek.getDate() + i);
+                    weekDays.push(day);
+                }
+                
+                let html = `
+                    <div style="padding: 20mm; font-family: Arial, sans-serif;">
+                        <h1 style="text-align: center; margin-bottom: 5mm; color: #333;">
+                            🍗 CRISPY CHICKEN CCM
+                        </h1>
+                        <h2 style="text-align: center; margin-bottom: 10mm; color: #666; font-size: 18px;">
+                            Weekly Schedule
+                        </h2>
+                        <p style="text-align: center; margin-bottom: 15mm; color: #999;">
+                            Week: ${weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - 
+                            ${weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}<br>
+                            Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
+                        </p>
+                `;
+                
+                if (this.state.employees.length > 0) {
+                    html += `
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Employee</th>
+                    `;
+                    
+                    // Add day headers
+                    weekDays.forEach(day => {
+                        const dayName = day.toLocaleDateString('en-US', { weekday: 'short' });
+                        const dateNum = day.getDate();
+                        html += `<th style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                            ${dayName}<br><strong>${dateNum}</strong>
+                        </th>`;
+                    });
+                    
+                    html += `</tr></thead><tbody>`;
+                    
+                    // Add employee rows
+                    this.state.employees.forEach(emp => {
+                        html += `<tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                ${emp.name}<br>
+                                <small>${emp.code} | ${emp.department || 'N/A'}</small>
+                            </td>`;
+                        
+                        weekDays.forEach(day => {
+                            const dayOfWeek = day.getDay();
+                            const empSchedule = this.state.schedule[emp.id];
+                            let scheduleText = '-';
+                            
+                            if (empSchedule && empSchedule[dayOfWeek]) {
+                                const shift = empSchedule[dayOfWeek];
+                                if (shift.off) {
+                                    scheduleText = 'OFF';
+                                } else if (shift.start && shift.end) {
+                                    scheduleText = `${shift.start}<br>${shift.end}`;
+                                }
+                            } else if (dayOfWeek === parseInt(emp.weeklyOff)) {
+                                scheduleText = 'OFF';
+                            }
+                            
+                            html += `<td style="border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle;">
+                                ${scheduleText}
+                            </td>`;
+                        });
+                        
+                        html += `</tr>`;
+                    });
+                    
+                    html += `</tbody></table>`;
+                } else {
+                    html += `
+                        <p style="text-align: center; color: #999; margin-top: 20mm;">
+                            No employees found.
+                        </p>
+                    `;
+                }
+                
+                html += `
+                        <div style="margin-top: 15mm; text-align: center; font-size: 12px; color: #999;">
+                            CRISPY CHICKEN CCM - Employee Management System v2.0<br>
+                            This is a computer-generated report.
+                        </div>
+                    </div>
+                `;
+                
+                const printContainer = document.getElementById('printContainer');
+                printContainer.innerHTML = html;
+                
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                        printContainer.innerHTML = '';
+                    }, 100);
+                }, 100);
+            },
+            
+            // Handle photo upload
+            handlePhotoUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('employeePhoto').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+            
+            // Create demo data if system is empty
+            createDemoDataIfEmpty() {
+                if (this.state.employees.length === 0) {
+                    console.log('Creating demo data...');
+                    
+                    const demoEmployees = [
+                        {
+                            id: 'emp_demo_1',
+                            name: 'Mohammed Ali',
+                            code: 'CCM-001',
+                            position: 'Kitchen Manager',
+                            department: 'Kitchen',
+                            phone: '+971501234567',
+                            email: 'mohammed@crispychicken.com',
+                            joinDate: '2023-01-15',
+                            weeklyOff: '5', // Friday
+                            photo: 'https://ui-avatars.com/api/?name=Mohammed+Ali&background=FF6B35&color=fff&size=100'
+                        },
+                        {
+                            id: 'emp_demo_2',
+                            name: 'Sarah Johnson',
+                            code: 'CCM-002',
+                            position: 'Service Supervisor',
+                            department: 'Service',
+                            phone: '+971502345678',
+                            email: 'sarah@crispychicken.com',
+                            joinDate: '2023-02-20',
+                            weeklyOff: '6', // Saturday
+                            photo: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=06D6A0&color=fff&size=100'
+                        },
+                        {
+                            id: 'emp_demo_3',
+                            name: 'Ahmed Hassan',
+                            code: 'CCM-003',
+                            position: 'Delivery Driver',
+                            department: 'Delivery',
+                            phone: '+971503456789',
+                            email: 'ahmed@crispychicken.com',
+                            joinDate: '2023-03-10',
+                            weeklyOff: '4', // Thursday
+                            photo: 'https://ui-avatars.com/api/?name=Ahmed+Hassan&background=118AB2&color=fff&size=100'
+                        }
+                    ];
+                    
+                    this.state.employees = demoEmployees;
+                    this.saveData();
+                    
+                    // Create demo schedule
+                    demoEmployees.forEach(emp => {
+                        this.state.schedule[emp.id] = {
+                            0: { start: '08:00', end: '17:00' }, // Sunday
+                            1: { start: '08:00', end: '17:00' }, // Monday
+                            2: { start: '08:00', end: '17:00' }, // Tuesday
+                            3: { start: '08:00', end: '17:00' }, // Wednesday
+                            4: { start: '08:00', end: '17:00' }, // Thursday
+                            5: emp.weeklyOff === '5' ? { off: true } : { start: '08:00', end: '17:00' }, // Friday
+                            6: emp.weeklyOff === '6' ? { off: true } : { start: '08:00', end: '17:00' }  // Saturday
+                        };
+                    });
+                    
+                    // Create demo attendance for current month
+                    const currentMonth = new Date().getMonth();
+                    const currentYear = new Date().getFullYear();
+                    const key = `${currentYear}_${currentMonth}`;
+                    const today = new Date().getDate();
+                    
+                    demoEmployees.forEach(emp => {
+                        if (!this.state.attendance[key]) this.state.attendance[key] = {};
+                        if (!this.state.attendance[key][emp.id]) this.state.attendance[key][emp.id] = {};
+                        
+                        // Mark some days as present, some as absent
+                        for (let day = 1; day <= today; day++) {
+                            if (day % 7 !== parseInt(emp.weeklyOff)) { // Not weekly off
+                                this.state.attendance[key][emp.id][day] = {
+                                    status: Math.random() > 0.2 ? 'present' : 'absent',
+                                    checkIn: '08:00',
+                                    checkOut: '17:00',
+                                    updatedAt: new Date().toISOString()
+                                };
+                            }
+                        }
+                    });
+                    
+                    this.saveData();
+                    this.log('System', 'Demo data created for new system', 'Success');
+                }
+            },
+            
+            // Start clock
+            startClock() {
+                this.updateClock();
+                setInterval(() => this.updateClock(), 1000);
+            },
+            
+            // Update clock display
+            updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                const clockElement = document.getElementById('clock');
+                if (clockElement) {
+                    clockElement.textContent = timeString;
+                }
+            },
+            
+            // Toggle theme
+            toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('ccm_theme', isDark ? 'dark' : 'light');
+                
+                const themeIcon = document.getElementById('themeIcon');
+                if (themeIcon) {
+                    themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            },
+            
+            // Load theme preference
+            loadTheme() {
+                const savedTheme = localStorage.getItem('ccm_theme');
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    const themeIcon = document.getElementById('themeIcon');
+                    if (themeIcon) {
+                        themeIcon.className = 'fas fa-sun';
+                    }
+                }
+            },
+            
+            // Show toast notification
+            showToast(message, type = 'success') {
+                const toast = document.querySelector('.toast');
+                const toastMessage = document.querySelector('.toast-message');
+                
+                if (toast && toastMessage) {
+                    // Update message and type
+                    toastMessage.textContent = message;
+                    toast.className = `toast ${type} show`;
+                    
+                    // Set icon based on type
+                    const icon = toast.querySelector('i');
+                    if (icon) {
+                        if (type === 'success') icon.className = 'fas fa-check-circle';
+                        else if (type === 'error') icon.className = 'fas fa-exclamation-circle';
+                        else if (type === 'info') icon.className = 'fas fa-info-circle';
+                        else icon.className = 'fas fa-bell';
+                    }
+                    
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                }
+            },
+            
+            // Show loading spinner
+            showLoading() {
+                const spinner = document.querySelector('.spinner');
+                if (spinner) {
+                    spinner.style.display = 'block';
+                }
+            },
+            
+            // Hide loading spinner
+            hideLoading() {
+                const spinner = document.querySelector('.spinner');
+                if (spinner) {
+                    spinner.style.display = 'none';
+                }
+            },
+            
+            // Log system activity
+            log(category, message, level = 'Info') {
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    category,
+                    message,
+                    level,
+                    user: 'System'
+                };
+                
+                this.state.logs.push(logEntry);
+                
+                // Keep only last 1000 logs
+                if (this.state.logs.length > 1000) {
+                    this.state.logs = this.state.logs.slice(-1000);
+                }
+                
+                this.saveData();
+                
+                // Update recent activity if dashboard is active
+                if (this.state.currentView === 'dashboard') {
+                    this.updateRecentActivity();
+                }
+            },
+            
+            // Generate report (alias for renderReports)
+            generateReport() {
+                this.renderReports();
+            }
+        };
+        
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            CCM.init();
+            
+            // Add click handlers for modal buttons
+            document.querySelectorAll('[onclick*="showModal"]').forEach(button => {
+                const match = button.getAttribute('onclick').match(/showModal\('(\w+)'\)/);
+                if (match) {
+                    const modalName = match[1];
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        CCM.showModal(modalName);
+                    });
+                }
+            });
+            
+            // Add click handler for add employee button in dashboard
+            const addEmployeeBtn = document.querySelector('[onclick*="showModal(\'employee\')"]');
+            if (addEmployeeBtn) {
+                addEmployeeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    CCM.showEmployeeModal();
+                });
+            }
+        });
+        
+        // Make CCM globally available for inline onclick handlers
+        window.CCM = CCM;
+    </script>
+</body>
+</html>
