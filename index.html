@@ -1,2089 +1,588 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Master v5.1 (Schedule & Attendance)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Crispy Call Center System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --secondary: #ef4444;
+            --primary: #dc2626; /* Crispy Red */
+            --primary-dark: #991b1b;
+            --gold: #fbbf24;
+            --secondary: #64748b;
             --success: #10b981;
-            --warning: #f59e0b; 
-            --bg-body: #f3f4f6;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --transition: all 0.3s ease;
+            --text: #0f172a;
+            --border: #e2e8f0;
         }
 
-        body.dark-mode {
-            --primary: #60a5fa;
-            --primary-dark: #3b82f6;
-            --bg-body: #0f172a;
-            --surface: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; transition: var(--transition); }
-
-        /* --- Alert Banner --- */
-        #alertBanner { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; padding: 12px 20px; color: white; font-size: 14px; font-weight: 500; display: none; justify-content: space-between; align-items: center; box-shadow: var(--shadow-lg); backdrop-filter: blur(4px); }
-        #alertBanner.warning { background: linear-gradient(90deg, #d97706, #b45309); }
-        #alertBanner.critical { background: linear-gradient(90deg, #dc2626, #991b1b); }
-        #alertBanner.show { display: flex; animation: slideDown 0.4s ease; }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-
-        /* --- Header --- */
-        header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; margin-top: 0; }
-        body.dark-mode header { background: rgba(30, 41, 59, 0.8); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
         
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand i { color: var(--primary); font-size: 24px; }
-        .brand h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
 
-        .controls { display: flex; align-items: center; gap: 15px; }
-        .btn-icon { background: transparent; border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: var(--transition); }
-        .btn-icon:hover { background: var(--bg-body); color: var(--primary); }
-
-        /* --- Main Layout --- */
-        main { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow: hidden; max-width: 1900px; margin: 0 auto; width: 100%; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 10px; }
-        .tab-btn { padding: 8px 20px; border: none; background: var(--surface); color: var(--text-muted); font-weight: 600; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); transition: var(--transition); }
-        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .tab-btn:hover:not(.active) { background: var(--bg-body); }
-
-        .view-section { display: none; flex-direction: column; gap: 20px; height: 100%; }
-        .view-section.active { display: flex; }
-
-        /* --- Toolbar --- */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 16px 20px; border-radius: var(--radius); box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px; border: 1px solid var(--border); }
-        .search-wrapper { position: relative; width: 300px; }
-        .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .search-input { width: 100%; padding: 10px 10px 10px 38px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-body); color: var(--text-main); font-family: inherit; }
-        
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn { padding: 10px 18px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: white; transition: var(--transition); box-shadow: var(--shadow); }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); }
+        /* --- Components --- */
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; }
+        .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
-        .btn-secondary { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); }
-        .btn-success { background: var(--success); }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-danger { background: var(--secondary); }
-        .btn-info { background: #8b5cf6; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--secondary); }
 
-        /* --- Tables (Shared & Specific) --- */
-        .table-wrapper { flex: 1; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: auto; position: relative; border: 1px solid var(--border); }
-        table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1200px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
-        thead th { background: var(--bg-body); color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; position: sticky; top: 0; z-index: 20; border-bottom: 2px solid var(--border); }
-        th:first-child, td:first-child { position: sticky; left: 0; z-index: 10; background: var(--surface); text-align: left; min-width: 220px; padding-left: 20px; border-right: 2px solid var(--border); }
+        .card { background: var(--surface); border-radius: 10px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        .emp-cell { display: flex; align-items: center; gap: 14px; }
-        .emp-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); cursor: pointer; transition: var(--transition); }
-        .emp-avatar:hover { transform: scale(1.05); box-shadow: 0 0 0 2px var(--primary); }
-        .emp-info { display: flex; flex-direction: column; }
-        .emp-name { font-weight: 600; color: var(--text-main); font-size: 14px; cursor: pointer; transition: var(--transition); }
-        .emp-name:hover { color: var(--primary); text-decoration: underline; }
-        .emp-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* Schedule Specifics */
-        .shift-cell { cursor: pointer; transition: 0.1s; user-select: none; font-size: 12px; line-height: 1.4; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
-        .shift-cell:hover { background-color: rgba(59, 130, 246, 0.1); }
-        .off-day { background-color: #f3f4f6; color: var(--text-muted); font-style: italic; letter-spacing: 1px; }
-        .shift-time { display: block; font-weight: 600; color: var(--text-main); }
-        .split-sep { color: var(--primary); font-size: 10px; margin: 2px 0; display: block; }
-
-        /* Agent Instructions Box */
-        .agent-instructions { background: #fffbeb; border: 1px solid #fcd34d; padding: 20px; border-radius: var(--radius); margin-top: 0; }
-        .ai-header { font-weight: 700; color: #92400e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
-        .ai-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
-        .ai-list li { display: flex; gap: 10px; font-size: 13px; color: #78350f; align-items: flex-start; }
-        .ai-list i { margin-top: 3px; }
-
-        /* Modals */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
-        .modal.active { display: flex; opacity: 1; }
-        .modal-card { background: var(--surface); width: 90%; max-width: 500px; border-radius: 16px; padding: 0; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.2s; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
-        .modal.active .modal-card { transform: scale(1); }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body); }
-        .modal-title { font-size: 18px; font-weight: 700; color: var(--text-main); }
-        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .modal-body { padding: 24px; overflow-y: auto; }
-        .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-body); }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-        .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; background: var(--bg-body); color: var(--text-main); }
-        .time-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; background: var(--bg-body); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
-
-        /* Stats & Legend */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
-        .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border-left: 4px solid transparent; display: flex; justify-content: space-between; align-items: center; transition: var(--transition); }
-        .stat-card:hover { transform: translateY(-2px); }
-        .stat-info h3 { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        .stat-info p { font-size: 24px; font-weight: 700; margin-top: 4px; }
-        .legend { display: flex; gap: 15px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-
-        /* Toast */
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: white; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; }
-        .toast.show { transform: translateY(0); }
-        .toast.success { border-left: 4px solid var(--success); }
-        .toast.error { border-left: 4px solid var(--secondary); }
-
-        /* Print Styles - Fixed */
-        @media print {
-            body { 
-                background: white; 
-                color: black; 
-                height: auto; 
-                overflow: visible; 
-                font-size: 12px;
-            }
-            
-            .no-print { 
-                display: none !important; 
-            }
-            
-            main, .view-section, .table-wrapper { 
-                display: block !important; 
-                overflow: visible !important; 
-                height: auto !important;
-                position: static !important;
-                box-shadow: none !important;
-                border: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            
-            .table-wrapper { 
-                margin-top: 20px !important;
-            }
-            
-            table { 
-                min-width: 100% !important; 
-                page-break-inside: auto;
-            }
-            
-            th, td { 
-                border: 1px solid #000 !important; 
-                color: black !important; 
-                background: white !important;
-                page-break-inside: avoid;
-            }
-            
-            thead th { 
-                background: #f0f0f0 !important; 
-                color: black !important;
-            }
-            
-            .day-cell { 
-                border: 1px solid #000 !important; 
-                color: black !important; 
-                background: white !important; 
-            }
-            
-            .status-present { background: #e6f7e6 !important; }
-            .status-overtime { background: #e6f7ff !important; }
-            .status-absent { background: #ffe6e6 !important; }
-            .status-vacation { background: #fff7e6 !important; }
-            .status-sick { background: #f0e6ff !important; }
-            .status-weeklyoff { background: #e6f0ff !important; }
-            .status-emergency { background: #ffe6f0 !important; }
-            
-            .emp-cell { 
-                break-inside: avoid; 
-            }
-            
-            .agent-instructions { 
-                display: none !important; 
-            }
-            
-            /* Print header */
-            body::before {
-                content: "HR Master v5.1 - Attendance Report";
-                display: block;
-                font-size: 18px;
-                font-weight: bold;
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            
-            /* Print footer */
-            body::after {
-                content: "Generated on " + new Date().toLocaleDateString();
-                display: block;
-                font-size: 10px;
-                text-align: center;
-                margin-top: 20px;
-                color: #666;
-            }
-        }
-        
-        #printEmployeeArea { display: none; background: white; color: black; }
-        
-        .print-header { border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-        .print-grid { display: grid; grid-template-columns: 180px 1fr; gap: 40px; }
-        .print-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; }
-        .print-section { margin-bottom: 25px; }
-        .print-section h4 { font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
-        .print-row { display: flex; margin-bottom: 10px; font-size: 14px; }
-        .print-label { font-weight: 600; width: 150px; color: #555; }
-        .print-val { color: #000; flex: 1; }
-        .ot-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .ot-box { background: #fdf6ec; border: 1px solid #fcd34d; padding: 15px; border-radius: 8px; text-align: center; }
-        .ot-box h5 { font-size: 12px; color: #92400e; text-transform: uppercase; margin-bottom: 5px; }
-        .ot-box p { font-size: 20px; font-weight: 700; color: #b45309; }
-        .ot-highlight { border-color: #f59e0b; background: #fffbeb; }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .table-wrapper {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .search-wrapper {
-                width: 100%;
-            }
-            
-            .actions {
-                justify-content: center;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-card {
-                width: 95%;
-                max-height: 95vh;
-            }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500; }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem;
         }
 
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid white;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-pending { background: #fff7ed; color: #c2410c; }
+        .badge-done { background: #f0fdf4; color: #15803d; }
+        .badge-task { background: #eff6ff; color: #1e40af; }
 
-        /* Status Colors */
-        .status-present { background-color: #dcfce7; }
-        .status-overtime { background-color: #cffafe; }
-        .status-absent { background-color: #fee2e2; }
-        .status-vacation { background-color: #fef3c7; }
-        .status-sick { background-color: #ede9fe; }
-        .status-weeklyoff { background-color: #dbeafe; }
-        .status-emergency { background-color: #fce7f3; }
-        .status-unfilled { background-color: #f9fafb; }
+        /* Date Display */
+        .date-display { background: #1e293b; color: #fff; padding: 8px 20px; border-radius: 20px; font-family: 'Courier New', monospace; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+
+        /* Trophy Card */
+        .trophy-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid var(--gold); text-align: center; position: relative; overflow: hidden; }
+        .trophy-icon { font-size: 2.5rem; margin-bottom: 5px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+
+        /* --- Layouts --- */
+        #auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #0f172a; }
+        .login-box { width: 100%; max-width: 380px; }
+
+        #app-layout { display: none; min-height: 100vh; }
+        header { background: var(--surface); padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+        .main-content { padding: 20px; max-width: 1400px; margin: 0 auto; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+        .tab-btn { background: none; border: none; padding: 8px 16px; cursor: pointer; border-radius: 6px; font-weight: 500; color: var(--secondary); white-space: nowrap; }
+        .tab-btn:hover { background: #f8fafc; }
+        .tab-btn.active { background: #fee2e2; color: var(--primary); }
+
+        /* Tables (LTR Adjustments) */
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { background: #f8fafc; color: var(--secondary); }
+        
+        .rank-1 { border-left: 4px solid var(--gold); background: #fffbeb; }
+        .rank-2 { border-left: 4px solid var(--silver); background: #f8fafc; }
+        .rank-3 { border-left: 4px solid var(--bronze); background: #fff7ed; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card h3 { font-size: 1.8rem; color: var(--primary); margin: 5px 0; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 200; }
+        .modal-content { background: var(--surface); padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- Alert Banner -->
-    <div id="alertBanner" role="alert" aria-live="assertive">
-        <div class="alert-content" style="display:flex; align-items:center; gap:15px;">
-            <i class="fas fa-exclamation-circle"></i>
-            <div>
-                <span id="alertTitle" style="font-weight: 700; text-transform: uppercase; margin-right: 15px;">Alerts:</span>
-                <div id="alertList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+    <!-- AUTH SCREEN -->
+    <section id="auth-screen">
+        <div class="card login-box">
+            <h2 style="text-align: center; margin-bottom: 20px; color: var(--primary);">Crispy Call Center</h2>
+            <div class="input-group"><input type="email" id="login-email" placeholder="Email (admin@sys.com / agent@sys.com)"></div>
+            <div class="input-group"><input type="password" id="login-password" placeholder="Password (123456)"></div>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="app.login()">Login</button>
+        </div>
+    </section>
+
+    <!-- APP LAYOUT -->
+    <section id="app-layout">
+        <header>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">C</div>
+                <span id="header-role" style="font-weight: bold; font-size: 1.1rem;">Dashboard</span>
             </div>
-        </div>
-        <button class="no-print" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" onclick="document.getElementById('alertBanner').classList.remove('show')" aria-label="Close alert">&times;</button>
-    </div>
-
-    <!-- Header -->
-    <header class="no-print">
-        <div class="brand">
-            <i class="fas fa-calendar-check"></i>
-            <div>
-                <h1>HR Master v5.1</h1>
-                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Attendance & Schedule Manager</span>
+            
+            <!-- Date Display (English) -->
+            <div class="date-display">
+                <span id="current-date">...</span>
             </div>
-        </div>
-        <div class="controls">
-            <button class="btn-icon" onclick="app.toggleTheme()" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
-                <i class="fas fa-moon" id="themeIcon"></i>
-            </button>
-            <div style="font-family: 'Courier New', monospace; font-weight: 700; background: var(--text-main); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 14px;" id="clock" aria-live="polite">00:00</div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="no-print">
-        
-        <!-- Navigation Tabs -->
-        <div class="tabs" role="tablist">
-            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="view-attendance" onclick="app.switchTab('attendance')"><i class="fas fa-calendar-day"></i> Attendance Log</button>
-            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="view-schedule" onclick="app.switchTab('schedule')"><i class="fas fa-clock"></i> Weekly Schedule</button>
-        </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-info" style="font-size: 0.9rem; color: var(--secondary);"></span>
+                <button class="btn btn-outline" onclick="app.logout()">Logout</button>
+            </div>
+        </header>
 
-        <!-- VIEW: ATTENDANCE -->
-        <div id="view-attendance" class="view-section active" role="tabpanel">
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <div style="display: flex; gap: 20px; align-items: center; width: 100%;">
+        <main class="main-content">
+            
+            <!-- MANAGER VIEW -->
+            <div id="manager-view" class="hidden">
+                <div class="dashboard-grid">
+                    <div class="card stat-card"><p>Total Orders</p><h3 id="stat-orders">0</h3></div>
+                    <div class="card stat-card"><p>Complaints</p><h3 id="stat-complaints">0</h3></div>
+                    <div class="card stat-card"><p>Assigned Tasks</p><h3 id="stat-tasks">0</h3></div>
+                    <div class="card stat-card"><p>Active Agents</p><h3 id="stat-agents">0</h3></div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="app.switchTab('orders')">📦 Orders</button>
+                    <button class="tab-btn" onclick="app.switchTab('direct-tasks')">📝 Assign Tasks</button>
+                    <button class="tab-btn" onclick="app.switchTab('complaints')">⚠️ Complaints</button>
+                    <button class="tab-btn" onclick="app.switchTab('leaderboard')">🏆 Leaderboard</button>
+                    <button class="tab-btn" onclick="app.switchTab('system-settings')">⚙️ Settings</button>
+                </div>
+
+                <!-- Directed Tasks Tab -->
+                <div id="tab-direct-tasks" class="tab-content hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3>Call Center Tasks</h3>
+                        <button class="btn btn-primary" onclick="app.openModal('add-task')">+ New Assignment</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Agent</th>
+                                    <th>Category</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="tab-orders" class="tab-content">
+                    <h3>Orders Log</h3>
+                    <div class="table-container"><table><thead><tr><th>ID</th><th>Customer</th><th>Agent</th><th>Branch</th><th>Status</th><th>Action</th></tr></thead><tbody id="orders-table"></tbody></table></div>
+                </div>
+
+                <!-- Complaints Tab -->
+                <div id="tab-complaints" class="tab-content hidden">
+                    <h3>Complaints Log</h3>
+                    <div class="table-container"><table><thead><tr><th>ID</th><th>Customer</th><th>Agent</th><th>Branch</th><th>Status</th><th>Action</th></tr></thead><tbody id="complaints-table"></tbody></table></div>
+                </div>
+
+                <!-- Leaderboard Tab -->
+                <div id="tab-leaderboard" class="tab-content hidden">
+                    <h3 style="color: var(--bronze); margin-bottom: 15px;">Top Performers Today</h3>
+                    <div class="card" style="padding:0;">
+                        <div class="table-container">
+                            <table><thead><tr><th>Rank</th><th>Agent Name</th><th>Code</th><th>Completed Orders</th></tr></thead><tbody id="leaderboard-body"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Settings -->
+                <div id="tab-system-settings" class="tab-content hidden">
+                    <h3 style="color:var(--primary); margin-bottom:15px;">System Settings</h3>
+                    <div class="card">
+                        <h4>Branches</h4>
+                        <div class="table-container"><table><thead><tr><th>Branch Name</th><th>Delete</th></tr></thead><tbody id="branches-table"></tbody></table></div>
+                    </div>
+                    <div class="card">
+                        <h4>Agents</h4>
+                        <div class="table-container"><table><thead><tr><th>Name</th><th>Code</th><th>Delete</th></tr></thead><tbody id="agents-table"></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENT VIEW -->
+            <div id="agent-view" class="hidden">
+                <!-- Leaderboard Card -->
+                <div id="agent-leaderboard" class="card trophy-card">
+                    <div class="trophy-icon">🏆</div>
+                    <div class="trophy-title">Top Agent Today</div>
+                    <div class="trophy-winner" id="lb-winner-name">...</div>
+                    <div class="trophy-score" id="lb-winner-score">...</div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="app.switchAgentTab('tasks')">📋 My Tasks</button>
+                    <button class="tab-btn" onclick="app.switchAgentTab('add-order')">📝 New Order</button>
+                    <button class="tab-btn" onclick="app.switchAgentTab('add-comp')">🚩 Report Issue</button>
+                </div>
+
+                <!-- Agent Tasks (Orders + Directed Tasks) -->
+                <div id="atab-tasks" class="agent-tab">
+                    <h4>📨 Assigned Tasks (Manager)</h4>
+                    <div id="my-directed-tasks-list" style="margin-bottom: 20px;"></div>
                     
-                    <div class="search-wrapper">
-                        <i class="fas fa-search" aria-hidden="true"></i>
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search employee..." onkeyup="app.handleSearch()" aria-label="Search employee">
-                    </div>
-
-                    <div style="flex:1;"></div>
-                    
-                    <div class="legend" id="legendContainer" role="list" aria-label="Status legend"></div>
-                    
-                    <div class="actions">
-                        <button class="btn btn-info" onclick="app.openReportModal()" aria-label="Generate Report"><i class="fas fa-file-alt"></i> Report</button>
-                        <button class="btn btn-warning" onclick="app.openOTModal()" aria-label="Edit Overtime"><i class="fas fa-clock"></i> Edit OT</button>
-                        <button class="btn btn-secondary" onclick="app.openBulkModal()" aria-label="Bulk Update"><i class="fas fa-calendar-alt"></i> Bulk</button>
-                        <button class="btn btn-primary" onclick="app.openEmployeeModal()" aria-label="Add Employee"><i class="fas fa-user-plus"></i> Add Emp</button>
-                        <button class="btn btn-success" onclick="app.exportCSV()" aria-label="Export Data"><i class="fas fa-file-excel"></i> Export</button>
-                        <button class="btn btn-secondary" onclick="app.printAttendance()" aria-label="Print View"><i class="fas fa-print"></i> Print</button>
-                    </div>
+                    <h4>🛵 My Delivery Orders</h4>
+                    <div id="my-orders-list"></div>
                 </div>
-            </div>
 
-            <!-- Date Selectors for Attendance -->
-            <div class="date-picker-group" style="display:flex; gap:10px; align-items:center; margin-bottom:-10px; padding:0 5px;">
-                <label style="font-size:12px; font-weight:600; color:var(--text-muted);" for="monthSelect">Month:</label>
-                <select id="monthSelect" style="padding: 4px 12px; border: 1px solid var(--border); border-radius: 6px;" aria-label="Select month"></select>
-                <label style="font-size:12px; font-weight:600; color:var(--text-muted);" for="yearSelect">Year:</label>
-                <select id="yearSelect" style="padding: 4px 12px; border: 1px solid var(--border); border-radius: 6px;" aria-label="Select year"></select>
-            </div>
-
-            <!-- Stats -->
-            <div class="stats-grid" id="statsContainer" role="list" aria-label="Statistics"></div>
-
-            <!-- Table -->
-            <div class="table-wrapper">
-                <table id="attendanceTable" role="table" aria-label="Attendance Table">
-                    <thead>
-                        <tr id="tableHeader">
-                            <th>Employee Details</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- VIEW: SCHEDULE -->
-        <div id="view-schedule" class="view-section" role="tabpanel">
-            <div class="toolbar">
-                <div style="display: flex; gap: 20px; align-items: center; width: 100%;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="fas fa-calendar-week" style="font-size:24px; color:var(--primary);" aria-hidden="true"></i>
-                        <h2 style="font-size:18px; font-weight:700;">Weekly Master Schedule</h2>
-                    </div>
-                    <div style="flex:1;"></div>
-                    <div class="actions">
-                        <button class="btn btn-warning" onclick="app.importDemoData()" aria-label="Load Demo Staff"><i class="fas fa-magic"></i> Load Demo Staff</button>
-                        <button class="btn btn-secondary" onclick="app.printSchedule()" aria-label="Print Schedule"><i class="fas fa-print"></i> Print Schedule</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agent Instructions Panel -->
-            <div class="agent-instructions no-print">
-                <div class="ai-header"><i class="fas fa-bullhorn"></i> 📌 Agent Instructions</div>
-                <ul class="ai-list">
-                    <li><i class="fas fa-check-circle"></i> Be ready 10 minutes before your shift.</li>
-                    <li><i class="fas fa-check-circle"></i> Logged into all systems (delivery + call center).</li>
-                    <li><i class="fas fa-coffee"></i> Breaks must be coordinated with supervisor.</li>
-                    <li><i class="fas fa-phone-volume"></i> Report late arrival directly to Ahmed.</li>
-                    <li><i class="fas fa-file-signature"></i> End-of-shift report is mandatory.</li>
-                </ul>
-            </div>
-
-            <div class="table-wrapper">
-                <table id="scheduleTable" role="table" aria-label="Schedule Table">
-                    <thead>
-                        <tr id="scheduleHeader">
-                            <th>Staff Member</th>
-                            <th>Sunday</th>
-                            <th>Monday</th>
-                            <th>Tuesday</th>
-                            <th>Wednesday</th>
-                            <th>Thursday</th>
-                            <th>Friday</th>
-                            <th>Saturday</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduleBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- Hidden Print Area -->
-    <div id="printEmployeeArea"></div>
-
-    <!-- Modals -->
-    <!-- Shift Edit Modal -->
-    <div class="modal no-print" id="shiftModal" role="dialog" aria-labelledby="shiftModalTitle" aria-hidden="true">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="shiftModalTitle" style="color:var(--primary);"><i class="fas fa-clock"></i> Edit Shift</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label" for="shiftEmpName">Employee</label>
-                    <input type="text" id="shiftEmpName" class="form-input" disabled style="background:var(--bg-body);">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="shiftDayName">Day</label>
-                    <input type="text" id="shiftDayName" class="form-input" disabled style="background:var(--bg-body);">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" style="display:flex; justify-content:space-between;">
-                        <span>Primary Shift</span>
-                        <label style="font-weight:400; cursor:pointer;"><input type="checkbox" id="shiftOffDay" onchange="app.toggleShiftInputs()"> Off Day</label>
-                    </label>
-                    <div id="primaryShiftGroup" class="time-group">
-                        <div>
-                            <label class="form-label" for="shiftStart1">Start</label>
-                            <input type="time" id="shiftStart1" class="form-input">
+                <!-- Agent Add Order -->
+                <div id="atab-add-order" class="agent-tab hidden">
+                    <div class="card">
+                        <h3>Place New Order</h3>
+                        <div class="input-group"><label>Customer Name / Restaurant</label><input type="text" id="ao-client"></div>
+                        <div class="input-group"><label>Branch</label><select id="ao-branch"></select></div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div class="input-group"><label>Date</label><input type="date" id="ao-date"></div>
+                            <div class="input-group"><label>Time</label><input type="time" id="ao-time"></div>
                         </div>
-                        <div>
-                            <label class="form-label" for="shiftEnd1">End</label>
-                            <input type="time" id="shiftEnd1" class="form-input">
-                        </div>
+                        <div class="input-group"><label>Delivery Address</label><textarea id="ao-address"></textarea></div>
+                        <button class="btn btn-primary" style="width:100%" onclick="app.submitOrder()">Confirm Order</button>
                     </div>
                 </div>
 
-                <div class="form-group" id="secondaryShiftGroup">
-                    <label class="form-label">Secondary Shift (Optional / Split)</label>
-                    <div class="time-group">
-                        <div>
-                            <label class="form-label" for="shiftStart2">Start</label>
-                            <input type="time" id="shiftStart2" class="form-input">
-                        </div>
-                        <div>
-                            <label class="form-label" for="shiftEnd2">End</label>
-                            <input type="time" id="shiftEnd2" class="form-input">
-                        </div>
+                <!-- Agent Add Complaint -->
+                <div id="atab-add-comp" class="agent-tab hidden">
+                    <div class="card">
+                        <h3>Report Issue / Complaint</h3>
+                        <div class="input-group"><label>Customer Name</label><input type="text" id="ac-client"></div>
+                        <div class="input-group"><label>Branch</label><select id="ac-branch"></select></div>
+                        <div class="input-group"><label>Invoice No.</label><input type="text" id="ac-invoice"></div>
+                        <div class="input-group"><label>Details</label><textarea id="ac-details"></textarea></div>
+                        <button class="btn btn-danger" style="width:100%" onclick="app.submitComplaint()">Submit Report</button>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" onclick="app.saveShift(true)">Clear Shift</button>
-                <button class="btn btn-primary" onclick="app.saveShift(false)">Save Schedule</button>
+        </main>
+    </section>
+
+    <!-- MODALS -->
+    <div id="modal-add-task" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Assign New Task</h3>
+            <div class="input-group"><label>Task Title</label><input type="text" id="dt-title"></div>
+            <div class="input-group"><label>Assign To Agent</label><select id="dt-agent"></select></div>
+            
+            <!-- CORE REQUEST: Specific Categories -->
+            <div class="input-group">
+                <label>Task Category (Foundation)</label>
+                <select id="dt-type">
+                    <option value="Customer Service">Customer Service</option>
+                    <option value="Increase Sales">Increase Sales</option>
+                    <option value="Follow-up Execution">Follow-up Execution</option>
+                </select>
             </div>
+            
+            <div class="input-group"><label>Execution Time</label><input type="datetime-local" id="dt-time"></div>
+            <div class="input-group"><label>Additional Details</label><textarea id="dt-desc"></textarea></div>
+            <button class="btn btn-primary" style="width:100%" onclick="app.saveDirectedTask()">Assign Task</button>
+            <button class="btn btn-outline" style="width:100%; margin-top:10px" onclick="app.closeModal('add-task')">Cancel</button>
         </div>
     </div>
 
-    <!-- Employee Modal (Edit File) -->
-    <div class="modal no-print" id="employeeModal" role="dialog" aria-labelledby="employeeModalTitle" aria-hidden="true">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="employeeModalTitle"><i class="fas fa-id-card"></i> Employee File</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-grid">
-                    <div class="form-section" style="grid-column: span 2;">
-                        <div class="photo-upload" style="border:2px dashed var(--border); padding:20px; text-align:center;">
-                            <img id="empPhotoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover;" alt="Employee Photo">
-                            <label for="empPhotoInput" style="font-size:12px; color:var(--primary); font-weight:600; cursor:pointer; display:block; margin-top:10px;"><i class="fas fa-camera"></i> Change Photo</label>
-                            <input type="file" id="empPhotoInput" accept="image/*" style="display: none;" aria-label="Employee Photo">
-                            <input type="hidden" id="empPhotoBase64">
-                        </div>
-                    </div>
-                    <div class="form-section">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">Personal</h4>
-                        <div class="form-group"><label class="form-label" for="empName">Full Name</label><input type="text" id="empName" class="form-input"></div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group"><label class="form-label" for="empJobNumber">Job Number</label><input type="text" id="empJobNumber" class="form-input"></div>
-                            <div class="form-group"><label class="form-label" for="empPhone">Phone</label><input type="tel" id="empPhone" class="form-input"></div>
-                        </div>
-                        <div class="form-group"><label class="form-label" for="empNationality">Nationality</label><input type="text" id="empNationality" class="form-input"></div>
-                    </div>
-                    <div class="form-section">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">Documents</h4>
-                        <div class="form-group"><label class="form-label" for="empPassportNo">Passport</label><input type="text" id="empPassportNo" class="form-input"></div>
-                        <div class="form-group"><label class="form-label" for="empPassportExp">Passport Exp</label><input type="date" id="empPassportExp" class="form-input"></div>
-                        <div class="form-group"><label class="form-label" for="empEIDNo">EID No.</label><input type="text" id="empEIDNo" class="form-input"></div>
-                        <div class="form-group"><label class="form-label" for="empEIDExp">EID Exp</label><input type="date" id="empEIDExp" class="form-input"></div>
-                    </div>
-                    <div class="form-section" style="grid-column: span 2;">
-                        <h4 style="font-size:12px; color:var(--primary); text-transform:uppercase; margin-bottom:10px;">HR Settings</h4>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                            <div class="form-group"><label class="form-label" for="empJoinDate">Join Date</label><input type="date" id="empJoinDate" class="form-input"></div>
-                            <div class="form-group"><label class="form-label" for="empLaborCard">Labor Card</label><input type="text" id="empLaborCard" class="form-input"></div>
-                            <div class="form-group"><label class="form-label" for="empInsuranceExp">Insurance Exp</label><input type="date" id="empInsuranceExp" class="form-input"></div>
-                            <div class="form-group">
-                                <label class="form-label" for="empWeeklyOff">Weekly Off</label>
-                                <select id="empWeeklyOff" class="form-select">
-                                    <option value="-1">None</option>
-                                    <option value="0">Sun</option><option value="1">Mon</option><option value="2">Tue</option>
-                                    <option value="3">Wed</option><option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <input type="hidden" id="editEmpId">
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="deleteEmpBtn" style="display: none;" onclick="app.deleteEmployee()">Delete</button>
-                <button class="btn btn-secondary" onclick="app.printEmployeeProfile()"><i class="fas fa-print"></i> Reprint</button>
-                <button class="btn btn-primary" onclick="app.saveEmployee()">Save</button>
-            </div>
-        </div>
-    </div>
+    <!-- JAVASCRIPT LOGIC V6 -->
+    <script type="module">
+        // 1. English Date Logic
+        function updateEnglishDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('en-US', options);
+            document.getElementById('current-date').textContent = dateString;
+        }
+        setInterval(updateEnglishDate, 1000);
+        updateEnglishDate();
 
-    <!-- Report Modal -->
-    <div class="modal no-print" id="reportModal" role="dialog" aria-labelledby="reportModalTitle" aria-hidden="true">
-        <div class="modal-card" style="max-width: 500px;">
-            <div class="modal-header">
-                <div class="modal-title" id="reportModalTitle" style="color: var(--primary);"><i class="fas fa-file-invoice"></i> Generate Report</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label" for="reportEmpSelect">Employee</label><select id="reportEmpSelect" class="form-select"></select></div>
-                <div class="form-group"><label class="form-label">Period</label>
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
-                        <select id="reportMonth" class="form-select" aria-label="Select month"></select>
-                        <select id="reportYear" class="form-select" aria-label="Select year"></select>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
-                    <button class="btn btn-primary" onclick="app.printDetailedReport()" aria-label="Print Report"><i class="fas fa-print"></i> Print (PDF)</button>
-                    <button class="btn btn-success" onclick="app.downloadEmpCSV()" aria-label="Download CSV"><i class="fas fa-file-csv"></i> CSV Data</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attendance Edit Modal -->
-    <div class="modal no-print" id="attendanceModal" role="dialog" aria-labelledby="attendanceModalTitle" aria-hidden="true">
-        <div class="modal-card" style="max-width: 400px;">
-            <div class="modal-header">
-                <div class="modal-title" id="attendanceModalTitle">Edit Attendance</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label" for="modalEmpName">Employee</label><input type="text" id="modalEmpName" class="form-input" disabled></div>
-                <div class="form-group"><label class="form-label" for="modalDate">Date</label><input type="text" id="modalDate" class="form-input" disabled></div>
-                <div class="form-group"><label class="form-label" for="modalStatus">Status</label>
-                    <select id="modalStatus" class="form-select" onchange="app.toggleHoursInput()">
-                        <option value="present">Present</option><option value="absent">Absent</option><option value="vacation">Vacation</option>
-                        <option value="sick">Sick</option><option value="weeklyoff">Weekly Off</option><option value="emergency">Emergency</option>
-                    </select>
-                </div>
-                <div class="form-group" id="hoursGroup">
-                    <label class="form-label" for="modalHours">Total Hours (If > 9 = OT)</label>
-                    <input type="number" id="modalHours" class="form-input" value="9" min="0" max="24" step="0.5">
-                </div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-primary" onclick="app.saveAttendance()">Update</button></div>
-        </div>
-    </div>
-
-    <!-- OT Modal -->
-    <div class="modal no-print" id="otModal" role="dialog" aria-labelledby="otModalTitle" aria-hidden="true">
-        <div class="modal-card" style="max-width: 400px;">
-            <div class="modal-header">
-                <div class="modal-title" id="otModalTitle" style="color: var(--warning);"><i class="fas fa-clock"></i> Overtime</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label" for="otEmpSelect">Employee</label><select id="otEmpSelect" class="form-select"></select></div>
-                <div class="form-group"><label class="form-label">Range</label>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <input type="date" id="otStart" class="form-input" aria-label="Start date"><input type="date" id="otEnd" class="form-input" aria-label="End date">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="otAction">Action</label>
-                    <select id="otAction" class="form-select" onchange="app.toggleOTActionUI()">
-                        <option value="add">Add Extra Hours (To 9h)</option>
-                        <option value="override">Set Total Hours (Edit)</option>
-                    </select>
-                </div>
-                <div class="form-group" id="otValueGroup">
-                    <label class="form-label" id="otValueLabel">Hours</label>
-                    <input type="number" id="otHours" class="form-input" value="2" step="0.5">
-                    <small style="color:var(--text-muted);">Adds to standard 9h.</small>
-                </div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-warning" onclick="app.applyQuickOT()">Apply</button></div>
-        </div>
-    </div>
-
-    <!-- Bulk Modal -->
-    <div class="modal no-print" id="bulkModal" role="dialog" aria-labelledby="bulkModalTitle" aria-hidden="true">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="bulkModalTitle">Bulk Update</div>
-                <button class="close-modal" onclick="app.closeModals()" aria-label="Close modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <div class="form-group"><label class="form-label" for="bulkEmpSelect">Employee</label><select id="bulkEmpSelect" class="form-select"></select></div>
-                    <div class="form-group"><label class="form-label" for="bulkStatus">Status</label><select id="bulkStatus" class="form-select">
-                        <option value="present">Present</option><option value="absent">Absent</option><option value="vacation">Vacation</option>
-                        <option value="sick">Sick</option><option value="weeklyoff">Off</option>
-                    </select></div>
-                    <div class="form-group"><label class="form-label" for="bulkStart">Start</label><input type="date" id="bulkStart" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" for="bulkEnd">End</label><input type="date" id="bulkEnd" class="form-input"></div>
-                </div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-primary" onclick="app.applyBulkAction()">Apply</button></div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" class="toast" role="alert" aria-live="polite"><i class="fas fa-check-circle"></i><span id="toastMsg">Saved</span></div>
-
-    <script>
-        const CONFIG = {
-            storageKeys: { employees: 'att_v51_employees', data: 'att_v51_data', schedule: 'att_v51_schedule' },
-            statusColors: { present: '#dcfce7', overtime: '#cffafe', absent: '#fee2e2', vacation: '#fef3c7', sick: '#ede9fe', weeklyoff: '#dbeafe', emergency: '#fce7f3' }
+        // 2. Data & Initialization
+        const INITIAL_DATA = {
+            users: [
+                { uid: 'mgr1', name: 'Admin Manager', email: 'admin@sys.com', role: 'manager', code: 'MGR-001' },
+                { uid: 'a1', name: 'AHMED KENAWY', email: 'ahmed@sys.com', role: 'agent', code: '00144' },
+                { uid: 'a2', name: 'SALAH AHMED', email: 'salah@sys.com', role: 'agent', code: 'CC005' },
+                { uid: 'a3', name: 'Nona Rose', email: 'nona@sys.com', role: 'agent', code: 'CC03' },
+                { uid: 'a4', name: 'Melvin compendio', email: 'melvin@sys.com', role: 'agent', code: 'N/A' },
+                { uid: 'a5', name: 'Asmita Sapkota', email: 'asmita@sys.com', role: 'agent', code: 'N/A' },
+                { uid: 'a6', name: 'Manju Ranabhat', email: 'manju@sys.com', role: 'agent', code: 'N/A' },
+                { uid: 'a7', name: 'Nirjala', email: 'nirjala@sys.com', role: 'agent', code: 'N/A' },
+                { uid: 'a8', name: 'HANA', email: 'hana@sys.com', role: 'agent', code: 'N/A' },
+                { uid: 'a9', name: 'HANA', email: 'hana2@sys.com', role: 'agent', code: 'CC009' }
+            ],
+            branches: [
+                "Crispy Chicken-Hamdan St", "Crispy Chicken Khaldia", "Crispy Chicken Shabiya 11", "Crispy Chicken Muroor",
+                "Crispy Chicken Al Electra", "Crispy Chicken Al Barsha", "Crispy Chicken Al Satwa", "Crispy Chicken Al Rigga", "Crispy Chicken Al Majaz"
+            ],
+            orders: [],
+            complaints: [],
+            directedTasks: [] 
         };
 
-        const app = {
-            data: { employees: [], attendance: {}, schedule: {}, currentMonth: new Date().getMonth(), currentYear: 2025, searchTerm: '' }, 
-
-            init() {
-                try {
-                    this.loadData();
-                    this.renderDateSelectors();
-                    this.renderLegend();
-                    this.renderStats();
-                    this.renderTable();
-                    this.renderSchedule();
-                    this.checkExpirations();
-                    this.startClock();
-                    this.loadTheme();
-                    
-                    // Listeners
-                    document.getElementById('monthSelect').addEventListener('change', (e) => { 
-                        this.data.currentMonth = parseInt(e.target.value); 
-                        this.renderTable(); 
-                        this.renderStats(); 
-                    });
-                    document.getElementById('yearSelect').addEventListener('change', (e) => { 
-                        this.data.currentYear = parseInt(e.target.value); 
-                        this.renderTable(); 
-                        this.renderStats(); 
-                    });
-                    document.getElementById('empPhotoInput').addEventListener('change', (e) => this.handleImageUpload(e));
-                    
-                    // Add keyboard navigation
-                    document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') {
-                            this.closeModals();
-                        }
-                    });
-                } catch (error) {
-                    this.showToast('Initialization error: ' + error.message, 'error');
-                }
-            },
-
-            // --- View Switcher ---
-            switchTab(tab) {
-                try {
-                    document.querySelectorAll('.tab-btn').forEach(b => {
-                        b.classList.remove('active');
-                        b.setAttribute('aria-selected', 'false');
-                    });
-                    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-                    
-                    if(tab === 'attendance') {
-                        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                        document.querySelector('.tab-btn:nth-child(1)').setAttribute('aria-selected', 'true');
-                        document.getElementById('view-attendance').classList.add('active');
-                        this.renderTable(); 
-                        this.renderStats();
-                    } else {
-                        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                        document.querySelector('.tab-btn:nth-child(2)').setAttribute('aria-selected', 'true');
-                        document.getElementById('view-schedule').classList.add('active');
-                        this.renderSchedule();
-                    }
-                } catch (error) {
-                    this.showToast('Tab switch error: ' + error.message, 'error');
-                }
-            },
-
-            // --- Print Functions - Fixed ---
-            printAttendance() {
-                try {
-                    // Create a new window for printing
-                    const printWindow = window.open('', '_blank');
-                    
-                    // Get the current date for the report
-                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                    const monthName = monthNames[this.data.currentMonth];
-                    
-                    // Create the HTML content for printing
-                    let printContent = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>HR Master v5.1 - Attendance Report</title>
-                            <style>
-                                body { font-family: 'Inter', sans-serif; margin: 20px; color: #000; }
-                                h1 { text-align: center; margin-bottom: 20px; }
-                                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-                                th { background-color: #f0f0f0; }
-                                .emp-cell { text-align: left; display: flex; align-items: center; gap: 10px; }
-                                .emp-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-                                .emp-info { display: flex; flex-direction: column; }
-                                .emp-name { font-weight: bold; }
-                                .emp-meta { font-size: 11px; color: #666; }
-                                .status-present { background-color: #e6f7e6; }
-                                .status-overtime { background-color: #e6f7ff; }
-                                .status-absent { background-color: #ffe6e6; }
-                                .status-vacation { background-color: #fff7e6; }
-                                .status-sick { background-color: #f0e6ff; }
-                                .status-weeklyoff { background-color: #e6f0ff; }
-                                .status-emergency { background-color: #ffe6f0; }
-                                .status-unfilled { background-color: #f9fafb; }
-                                .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
-                                @media print {
-                                    body { margin: 10px; }
-                                    th, td { font-size: 10px; padding: 5px; }
-                                    .emp-avatar { width: 20px; height: 20px; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <h1>HR Master v5.1 - Attendance Report</h1>
-                            <h2>${monthName} ${this.data.currentYear}</h2>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th>
-                    `;
-                    
-                    // Add day headers
-                    const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
-                    for (let i = 1; i <= daysInMonth; i++) {
-                        const d = new Date(this.data.currentYear, this.data.currentMonth, i);
-                        printContent += `<th>${i}<br><span style="font-size:9px;">${d.toLocaleDateString('en-US',{weekday:'narrow'})}</span></th>`;
-                    }
-                    printContent += `<th>Days</th><th>OT</th></tr></thead><tbody>`;
-                    
-                    // Add employee rows
-                    const filtered = this.data.employees.filter(e => 
-                        e.name.toLowerCase().includes(this.data.searchTerm) || 
-                        (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm))
-                    );
-                    
-                    filtered.forEach(emp => {
-                        let worked=0, ot=0, cells='';
-                        
-                        for(let i=1; i<=daysInMonth; i++) {
-                            const att = this.getAttendance(emp.id, i);
-                            let content = '-', cls = '';
-                            
-                            // Check Schedule for "Off" days
-                            const dayIdx = new Date(this.data.currentYear, this.data.currentMonth, i).getDay();
-                            const isScheduledOff = this.data.schedule[emp.id] && 
-                                this.data.schedule[emp.id][dayIdx] && 
-                                (this.data.schedule[emp.id][dayIdx].off || !this.data.schedule[emp.id][dayIdx].s1);
-                            
-                            if(!att && isScheduledOff) { 
-                                cls='status-unfilled'; 
-                                content='-'; 
-                            }
-                            
-                            if(att) {
-                                if(att.status==='present' || att.status==='overtime') {
-                                    content=att.hours; 
-                                    worked++;
-                                    if(att.hours>9) { 
-                                        cls='status-overtime'; 
-                                        ot+=att.hours-9; 
-                                    }
-                                    else cls='status-present';
-                                } else if(att.status==='weeklyoff') { 
-                                    content='W'; 
-                                    cls='status-weeklyoff'; 
-                                }
-                                else if(att.status==='vacation') { 
-                                    content='V'; 
-                                    cls='status-vacation'; 
-                                }
-                                else if(att.status==='sick') { 
-                                    content='S'; 
-                                    cls='status-sick'; 
-                                }
-                                else if(att.status==='absent') { 
-                                    content='A'; 
-                                    cls='status-absent'; 
-                                }
-                            }
-                            cells += `<td class="${cls}">${content}</td>`;
-                        }
-                        
-                        printContent += `
-                            <tr>
-                                <td>
-                                    <div class="emp-cell">
-                                        <img src="${emp.photo||'https://via.placeholder.com/30'}" class="emp-avatar" alt="${emp.name}">
-                                        <div class="emp-info">
-                                            <span class="emp-name">${emp.name}</span>
-                                            <span class="emp-meta">${emp.jobNumber}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                ${cells}
-                                <td style="font-weight:bold">${worked}</td>
-                                <td style="color:${ot>0?'#3b82f6':'inherit'}">${ot>0?'+'+ot:'-'}</td>
-                            </tr>
-                        `;
-                    });
-                    
-                    printContent += `</tbody></table><div class="footer">Generated on ${new Date().toLocaleDateString()}</div></body></html>`;
-                    
-                    // Write the content to the new window
-                    printWindow.document.write(printContent);
-                    printWindow.document.close();
-                    
-                    // Wait for the content to load before printing
-                    printWindow.onload = function() {
-                        printWindow.focus();
-                        printWindow.print();
-                        printWindow.close();
-                    };
-                    
-                    this.showToast('Print dialog opened', 'success');
-                } catch (error) {
-                    this.showToast('Error printing: ' + error.message, 'error');
-                }
-            },
-            
-            printSchedule() {
-                try {
-                    // Create a new window for printing
-                    const printWindow = window.open('', '_blank');
-                    
-                    // Create the HTML content for printing
-                    let printContent = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>HR Master v5.1 - Schedule Report</title>
-                            <style>
-                                body { font-family: 'Inter', sans-serif; margin: 20px; color: #000; }
-                                h1 { text-align: center; margin-bottom: 20px; }
-                                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                                th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-                                th { background-color: #f0f0f0; }
-                                .emp-cell { text-align: left; display: flex; align-items: center; gap: 10px; }
-                                .emp-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-                                .emp-info { display: flex; flex-direction: column; }
-                                .emp-name { font-weight: bold; }
-                                .emp-meta { font-size: 11px; color: #666; }
-                                .shift-cell { font-size: 12px; line-height: 1.4; }
-                                .off-day { background-color: #f3f4f6; color: #666; font-style: italic; }
-                                .shift-time { display: block; font-weight: bold; }
-                                .split-sep { color: #3b82f6; font-size: 10px; margin: 2px 0; display: block; }
-                                .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
-                                @media print {
-                                    body { margin: 10px; }
-                                    th, td { font-size: 10px; padding: 5px; }
-                                    .emp-avatar { width: 20px; height: 20px; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <h1>HR Master v5.1 - Weekly Schedule</h1>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Staff Member</th>
-                                        <th>Sunday</th>
-                                        <th>Monday</th>
-                                        <th>Tuesday</th>
-                                        <th>Wednesday</th>
-                                        <th>Thursday</th>
-                                        <th>Friday</th>
-                                        <th>Saturday</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-                    
-                    // Add employee rows
-                    this.data.employees.forEach(emp => {
-                        const empSch = this.data.schedule[emp.id] || {};
-                        let cells = '';
-                        const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-                        
-                        days.forEach((dayName, idx) => {
-                            const shift = empSch[idx];
-                            let html = `<div class="shift-cell">`;
-                            
-                            if(!shift || shift.off) {
-                                html += `<span class="off-day">💥 Off</span>`;
-                            } else {
-                                html += `<span class="shift-time">${this.formatTime(shift.s1)} - ${this.formatTime(shift.e1)}</span>`;
-                                if(shift.s2 && shift.e2) {
-                                    html += `<span class="split-sep">/</span><span class="shift-time">${this.formatTime(shift.s2)} - ${this.formatTime(shift.e2)}</span>`;
-                                }
-                            }
-                            html += `</div>`;
-                            cells += `<td>${html}</td>`;
-                        });
-                        
-                        printContent += `
-                            <tr>
-                                <td>
-                                    <div class="emp-cell">
-                                        <img src="${emp.photo||'https://via.placeholder.com/30'}" class="emp-avatar" alt="${emp.name}">
-                                        <div class="emp-info">
-                                            <span class="emp-name">${emp.name}</span>
-                                            <span class="emp-meta">${emp.jobNumber || 'N/A'}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                ${cells}
-                            </tr>
-                        `;
-                    });
-                    
-                    printContent += `</tbody></table><div class="footer">Generated on ${new Date().toLocaleDateString()}</div></body></html>`;
-                    
-                    // Write the content to the new window
-                    printWindow.document.write(printContent);
-                    printWindow.document.close();
-                    
-                    // Wait for the content to load before printing
-                    printWindow.onload = function() {
-                        printWindow.focus();
-                        printWindow.print();
-                        printWindow.close();
-                    };
-                    
-                    this.showToast('Print dialog opened', 'success');
-                } catch (error) {
-                    this.showToast('Error printing schedule: ' + error.message, 'error');
-                }
-            },
-
-            // --- Schedule Logic ---
-            importDemoData() {
-                try {
-                    if(confirm("This will create 7 demo staff members and load the schedule. Continue?")) {
-                        const demoStaff = [
-                            { name: "Saleh Emad", job: "JD-001" }, { name: "Nona Rose", job: "JD-002" }, 
-                            { name: "Melvin compendio", job: "JD-003" }, { name: "Asmita Sapkota", job: "JD-004" },
-                            { name: "Manju Ranabhat", job: "JD-005" }, { name: "Nirjala", job: "JD-006" }, 
-                            { name: "Hana", job: "JD-007" }
-                        ];
-                        
-                        // Create Employees
-                        demoStaff.forEach(s => {
-                            this.data.employees.push({
-                                id: Date.now() + Math.random(), 
-                                name: s.name, 
-                                jobNumber: s.job, 
-                                phone: "", 
-                                nationality: "",
-                                passportNo: "", 
-                                passportExp: "", 
-                                eidNo: "", 
-                                eidExp: "", 
-                                joinDate: "", 
-                                laborCard: "", 
-                                insuranceExp: "", 
-                                weeklyOff: "-1", 
-                                photo: ""
-                            });
-                        });
-
-                        // Create Schedule
-                        const sch = {};
-                        
-                        // Saleh: Fri(10-4/10-1), Sat(Off), Sun-Thu(10-7)
-                        sch[demoStaff[0].id] = { 
-                            5: {s1:"10:00",e1:"16:00",s2:"22:00",e2:"01:00"}, 
-                            6: null, 
-                            0:{s1:"10:00",e1:"19:00"}, 
-                            1:{s1:"10:00",e1:"19:00"}, 
-                            2:{s1:"10:00",e1:"19:00"}, 
-                            3:{s1:"10:00",e1:"19:00"}, 
-                            4:{s1:"10:00",e1:"19:00"} 
-                        };
-                        
-                        // Nona: Fri(3-12), Sat(10-7), Sun-Thu(11-8), Thu(Off)
-                        sch[demoStaff[1].id] = { 
-                            5: {s1:"15:00",e1:"00:00"}, 
-                            6:{s1:"10:00",e1:"19:00"}, 
-                            0:{s1:"11:00",e1:"20:00"}, 
-                            1:{s1:"11:00",e1:"20:00"}, 
-                            2:{s1:"11:00",e1:"20:00"}, 
-                            3:{s1:"11:00",e1:"20:00"}, 
-                            4: null 
-                        };
-
-                        // Melvin: Fri(11-8), Sat(11-8), Sun(Off), Mon-Thu(11-8)
-                        sch[demoStaff[2].id] = { 
-                            5: {s1:"11:00",e1:"20:00"}, 
-                            6:{s1:"11:00",e1:"20:00"}, 
-                            0: null, 
-                            1:{s1:"11:00",e1:"20:00"}, 
-                            2:{s1:"11:00",e1:"20:00"}, 
-                            3:{s1:"11:00",e1:"20:00"}, 
-                            4:{s1:"11:00",e1:"20:00"} 
-                        };
-
-                        // Asmita: Fri(Off), Sat(4-2), Sun(12-6/10-1), Mon(3-12), Tue(5-2), Wed(5-2), Thu(5-2)
-                        sch[demoStaff[3].id] = { 
-                            5: null, 
-                            6:{s1:"16:00",e1:"02:00"}, 
-                            0:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 
-                            1:{s1:"15:00",e1:"00:00"}, 
-                            2:{s1:"17:00",e1:"02:00"}, 
-                            3:{s1:"17:00",e1:"02:00"}, 
-                            4:{s1:"17:00",e1:"02:00"} 
-                        };
-
-                        // Manju: Fri(12-4/10-3), Sat(12-6/10-1), Sun(5-2), Mon(5-2), Tue(Off), Wed(6-3), Thu(6-3)
-                        sch[demoStaff[4].id] = { 
-                            5:{s1:"12:00",e1:"16:00",s2:"22:00",e2:"03:00"}, 
-                            6:{s1:"12:00",e1:"18:00",s2:"22:00",e2:"01:00"}, 
-                            0:{s1:"17:00",e1:"02:00"}, 
-                            1:{s1:"17:00",e1:"02:00"}, 
-                            2: null, 
-                            3:{s1:"18:00",e1:"03:00"}, 
-                            4:{s1:"18:00",e1:"03:00"} 
-                        };
-
-                        // Nirjala: Fri(6-3), Sat(Off), Sun(6-3), Mon(6-3), Tue(6-3), Wed(Off), Thu(6-3)
-                        sch[demoStaff[5].id] = { 
-                            5:{s1:"18:00",e1:"03:00"}, 
-                            6: null, 
-                            0:{s1:"18:00",e1:"03:00"}, 
-                            1:{s1:"18:00",e1:"03:00"}, 
-                            2:{s1:"18:00",e1:"03:00"}, 
-                            3: null, 
-                            4:{s1:"18:00",e1:"03:00"} 
-                        };
-
-                        // Hana: Fri(10-7), Sat(10-7), Sun(Off), Mon(10-7), Tue(10-7), Wed(10-7), Thu(10-7)
-                        sch[demoStaff[6].id] = { 
-                            5:{s1:"10:00",e1:"19:00"}, 
-                            6:{s1:"10:00",e1:"19:00"}, 
-                            0: null, 
-                            1:{s1:"10:00",e1:"19:00"}, 
-                            2:{s1:"10:00",e1:"19:00"}, 
-                            3:{s1:"10:00",e1:"19:00"}, 
-                            4:{s1:"10:00",e1:"19:00"} 
-                        };
-
-                        this.data.schedule = sch;
-                        this.saveData();
-                        this.renderSchedule();
-                        this.showToast('Demo Staff Loaded!', 'success');
-                    }
-                } catch (error) {
-                    this.showToast('Error loading demo data: ' + error.message, 'error');
-                }
-            },
-
-            renderSchedule() {
-                try {
-                    const tbody = document.getElementById('scheduleBody');
-                    
-                    if (this.data.employees.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No employees found. Click "Load Demo Staff" to add sample data.</td></tr>';
-                        return;
-                    }
-                    
-                    tbody.innerHTML = this.data.employees.map(emp => {
-                        const empSch = this.data.schedule[emp.id] || {};
-                        let cells = '';
-                        const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-                        
-                        days.forEach((dayName, idx) => {
-                            const shift = empSch[idx];
-                            let html = `<div class="shift-cell" onclick="app.openShiftModal(${emp.id}, ${idx}, '${dayName}')" role="button" tabindex="0" aria-label="Edit ${dayName} shift for ${emp.name}">`;
-                            
-                            if(!shift || shift.off) {
-                                html += `<span class="off-day">💥 Off</span>`;
-                            } else {
-                                html += `<span class="shift-time">${this.formatTime(shift.s1)} - ${this.formatTime(shift.e1)}</span>`;
-                                if(shift.s2 && shift.e2) {
-                                    html += `<span class="split-sep">/</span><span class="shift-time">${this.formatTime(shift.s2)} - ${this.formatTime(shift.e2)}</span>`;
-                                }
-                            }
-                            html += `</div>`;
-                            cells += `<td>${html}</td>`;
-                        });
-
-                        return `<tr>
-                            <td>
-                                <div class="emp-cell">
-                                    <img src="${emp.photo || 'https://via.placeholder.com/36'}" class="emp-avatar" alt="${emp.name}" onclick="app.openEmployeeModal(${emp.id})">
-                                    <div class="emp-info">
-                                        <span class="emp-name" onclick="app.openEmployeeModal(${emp.id})">${emp.name}</span>
-                                        <span class="emp-meta">${emp.jobNumber || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </td>${cells}</tr>`;
-                    }).join('');
-                } catch (error) {
-                    this.showToast('Error rendering schedule: ' + error.message, 'error');
-                }
-            },
-
-            formatTime(time24) {
-                if(!time24) return "";
-                const [h, m] = time24.split(':');
-                const hour = parseInt(h);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const h12 = hour % 12 || 12;
-                return `${h12}:${m} ${ampm}`;
-            },
-
-            openShiftModal(empId, dayIdx, dayName) {
-                try {
-                    const emp = this.data.employees.find(e => e.id === empId);
-                    if (!emp) {
-                        this.showToast('Employee not found', 'error');
-                        return;
-                    }
-                    
-                    const shift = this.data.schedule[emp.id] && this.data.schedule[emp.id][dayIdx];
-                    
-                    document.getElementById('shiftEmpName').value = emp.name;
-                    document.getElementById('shiftDayName').value = dayName;
-                    
-                    // Set hidden ID
-                    document.getElementById('shiftModal').dataset.empId = empId;
-                    document.getElementById('shiftModal').dataset.dayIdx = dayIdx;
-
-                    if(shift && shift.off) {
-                        document.getElementById('shiftOffDay').checked = true;
-                        this.toggleShiftInputs();
-                    } else {
-                        document.getElementById('shiftOffDay').checked = false;
-                        document.getElementById('shiftStart1').value = shift ? shift.s1 : "";
-                        document.getElementById('shiftEnd1').value = shift ? shift.e1 : "";
-                        document.getElementById('shiftStart2').value = shift ? (shift.s2 || "") : "";
-                        document.getElementById('shiftEnd2').value = shift ? (shift.e2 || "") : "";
-                        this.toggleShiftInputs();
-                    }
-
-                    document.getElementById('shiftModal').classList.add('active');
-                    document.getElementById('shiftModal').setAttribute('aria-hidden', 'false');
-                    
-                    // Focus on first input
-                    setTimeout(() => {
-                        if (!document.getElementById('shiftOffDay').checked) {
-                            document.getElementById('shiftStart1').focus();
-                        } else {
-                            document.getElementById('shiftOffDay').focus();
-                        }
-                    }, 100);
-                } catch (error) {
-                    this.showToast('Error opening shift modal: ' + error.message, 'error');
-                }
-            },
-
-            toggleShiftInputs() {
-                const isOff = document.getElementById('shiftOffDay').checked;
-                document.getElementById('primaryShiftGroup').style.display = isOff ? 'none' : 'grid';
-                document.getElementById('secondaryShiftGroup').style.display = isOff ? 'none' : 'block';
-            },
-
-            saveShift(isClear) {
-                try {
-                    const empId = document.getElementById('shiftModal').dataset.empId;
-                    const dayIdx = parseInt(document.getElementById('shiftModal').dataset.dayIdx);
-
-                    if(!this.data.schedule[empId]) this.data.schedule[empId] = {};
-
-                    if(isClear || document.getElementById('shiftOffDay').checked) {
-                        this.data.schedule[empId][dayIdx] = { off: true };
-                    } else {
-                        const s1 = document.getElementById('shiftStart1').value;
-                        const e1 = document.getElementById('shiftEnd1').value;
-                        const s2 = document.getElementById('shiftStart2').value;
-                        const e2 = document.getElementById('shiftEnd2').value;
-
-                        if(!s1 || !e1) { 
-                            this.showToast('Primary shift required', 'error'); 
-                            return; 
-                        }
-
-                        this.data.schedule[empId][dayIdx] = { s1, e1, s2, e2 };
-                    }
-
-                    this.saveData();
-                    this.renderSchedule();
-                    this.closeModals();
-                    this.showToast('Schedule Updated', 'success');
-                } catch (error) {
-                    this.showToast('Error saving shift: ' + error.message, 'error');
-                }
-            },
-
-            // --- Existing Features (Refactored) ---
-            
-            loadData() {
-                try {
-                    const e = localStorage.getItem(CONFIG.storageKeys.employees);
-                    if(e) this.data.employees = JSON.parse(e);
-                    const a = localStorage.getItem(CONFIG.storageKeys.data);
-                    if(a) this.data.attendance = JSON.parse(a);
-                    const s = localStorage.getItem(CONFIG.storageKeys.schedule);
-                    if(s) this.data.schedule = JSON.parse(s);
-                } catch (error) {
-                    this.showToast('Error loading data: ' + error.message, 'error');
-                    // Reset data if corrupted
-                    this.data.employees = [];
-                    this.data.attendance = {};
-                    this.data.schedule = {};
-                }
-            },
-
-            saveData() {
-                try {
-                    localStorage.setItem(CONFIG.storageKeys.employees, JSON.stringify(this.data.employees));
-                    localStorage.setItem(CONFIG.storageKeys.data, JSON.stringify(this.data.attendance));
-                    localStorage.setItem(CONFIG.storageKeys.schedule, JSON.stringify(this.data.schedule));
-                } catch (error) {
-                    this.showToast('Error saving data: ' + error.message, 'error');
-                }
-            },
-
-            toggleTheme() {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-                document.getElementById('themeIcon').className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
-            },
-            loadTheme() { 
-                try {
-                    if(localStorage.getItem('theme')==='dark') { 
-                        document.body.classList.add('dark-mode'); 
-                        document.getElementById('themeIcon').className = 'fas fa-sun'; 
-                    } 
-                } catch (error) {
-                    console.error('Error loading theme:', error);
-                }
-            },
-
-            // --- Attendance & Table Rendering ---
-            handleSearch() { 
-                this.data.searchTerm = document.getElementById('searchInput').value.toLowerCase(); 
-                this.renderTable(); 
-            },
-            
-            renderDateSelectors() {
-                try {
-                    const m = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-                    document.getElementById('monthSelect').innerHTML = m.map((nm,i) => `<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${nm}</option>`).join('');
-                    const y = [2024,2025,2026,2027,2028];
-                    document.getElementById('yearSelect').innerHTML = y.map(ym => `<option value="${ym}" ${ym===this.data.currentYear?'selected':''}>${ym}</option>`).join('');
-                } catch (error) {
-                    this.showToast('Error rendering date selectors: ' + error.message, 'error');
-                }
-            },
-
-            renderTable() {
-                try {
-                    const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
-                    const tbody = document.getElementById('tableBody');
-                    const thead = document.getElementById('tableHeader');
-                    
-                    let h = `<th>Employee</th>`;
-                    for(let i=1; i<=daysInMonth; i++) {
-                        const d = new Date(this.data.currentYear, this.data.currentMonth, i);
-                        h += `<th style="min-width:40px;">${i}<br><span style="font-size:10px; opacity:0.7;">${d.toLocaleDateString('en-US',{weekday:'narrow'})}</span></th>`;
-                    }
-                    h += `<th>Days</th><th>OT</th>`;
-                    thead.innerHTML = h;
-
-                    const filtered = this.data.employees.filter(e => 
-                        e.name.toLowerCase().includes(this.data.searchTerm) || 
-                        (e.jobNumber && e.jobNumber.toString().includes(this.data.searchTerm))
-                    );
-
-                    if (filtered.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="' + (daysInMonth + 3) + '" style="text-align: center; padding: 20px;">No employees found. Add employees to get started.</td></tr>';
-                        return;
-                    }
-
-                    tbody.innerHTML = filtered.map(emp => {
-                        let worked=0, ot=0, cells='';
-                        for(let i=1; i<=daysInMonth; i++) {
-                            const att = this.getAttendance(emp.id, i);
-                            let content = '-', cls = '';
-                            
-                            // Check Schedule for "Off" days
-                            const dayIdx = new Date(this.data.currentYear, this.data.currentMonth, i).getDay();
-                            const isScheduledOff = this.data.schedule[emp.id] && 
-                                this.data.schedule[emp.id][dayIdx] && 
-                                (this.data.schedule[emp.id][dayIdx].off || !this.data.schedule[emp.id][dayIdx].s1);
-                            
-                            if(!att && isScheduledOff) { 
-                                cls='status-unfilled'; 
-                                content='-'; 
-                            }
-                            
-                            if(att) {
-                                if(att.status==='present' || att.status==='overtime') {
-                                    content=att.hours; 
-                                    worked++;
-                                    if(att.hours>9) { 
-                                        cls='status-overtime'; 
-                                        ot+=att.hours-9; 
-                                    }
-                                    else cls='status-present';
-                                } else if(att.status==='weeklyoff') { 
-                                    content='W'; 
-                                    cls='status-weeklyoff'; 
-                                }
-                                else if(att.status==='vacation') { 
-                                    content='V'; 
-                                    cls='status-vacation'; 
-                                }
-                                else if(att.status==='sick') { 
-                                    content='S'; 
-                                    cls='status-sick'; 
-                                }
-                                else if(att.status==='absent') { 
-                                    content='A'; 
-                                    cls='status-absent'; 
-                                }
-                            }
-                            cells += `<td class="day-cell ${cls}" onclick="app.openAttendanceModal(${emp.id},${i})" role="button" tabindex="0" aria-label="Edit attendance for ${emp.name} on day ${i}">${content}</td>`;
-                        }
-                        return `<tr>
-                            <td>
-                                <div class="emp-cell">
-                                    <img src="${emp.photo||'https://via.placeholder.com/36'}" class="emp-avatar" alt="${emp.name}" onclick="app.openEmployeeModal(${emp.id})">
-                                    <div>
-                                        <div class="emp-name" onclick="app.openEmployeeModal(${emp.id})">${emp.name}</div>
-                                        <div class="emp-meta">${emp.jobNumber}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            ${cells}
-                            <td style="font-weight:bold">${worked}</td>
-                            <td style="color:${ot>0?'var(--primary)':'inherit'}">${ot>0?'+'+ot:'-'}</td>
-                        </tr>`;
-                    }).join('');
-                } catch (error) {
-                    this.showToast('Error rendering table: ' + error.message, 'error');
-                }
-            },
-
-            getAttendance(id, day) {
-                try {
-                    const k = `${this.data.currentYear}_${this.data.currentMonth}`;
-                    return (this.data.attendance[k] && this.data.attendance[k][id] && this.data.attendance[k][id][day]) || null;
-                } catch (error) {
-                    this.showToast('Error getting attendance: ' + error.message, 'error');
-                    return null;
-                }
-            },
-
-            // --- Modals Logic ---
-            openEmployeeModal(id=null) {
-                try {
-                    const m = document.getElementById('employeeModal');
-                    
-                    // Clear form for new employee
-                    if (!id) {
-                        m.querySelector('.modal-title').innerHTML = '<i class="fas fa-user-plus"></i> Add Employee';
-                        document.getElementById('deleteEmpBtn').style.display = 'none';
-                        document.querySelectorAll('#employeeModal input:not([type=hidden])').forEach(i=>i.value='');
-                        document.getElementById('empPhotoBase64').value='';
-                        document.getElementById('empPhotoPreview').src='https://via.placeholder.com/80';
-                        document.getElementById('editEmpId').value = '';
-                    } else {
-                        m.querySelector('.modal-title').innerHTML = '<i class="fas fa-user-edit"></i> Edit Employee';
-                        document.getElementById('deleteEmpBtn').style.display = 'block';
-                        
-                        const e = this.data.employees.find(x=>x.id===id);
-                        if (!e) {
-                            this.showToast('Employee not found', 'error');
-                            return;
-                        }
-                        document.getElementById('editEmpId').value = id;
-                        document.getElementById('empName').value=e.name; 
-                        document.getElementById('empJobNumber').value=e.jobNumber;
-                        document.getElementById('empPhone').value=e.phone; 
-                        document.getElementById('empNationality').value=e.nationality;
-                        document.getElementById('empPassportNo').value=e.passportNo; 
-                        document.getElementById('empPassportExp').value=e.passportExp;
-                        document.getElementById('empEIDNo').value=e.eidNo; 
-                        document.getElementById('empEIDExp').value=e.eidExp;
-                        document.getElementById('empJoinDate').value=e.joinDate; 
-                        document.getElementById('empLaborCard').value=e.laborCard;
-                        document.getElementById('empInsuranceExp').value=e.insuranceExp; 
-                        document.getElementById('empWeeklyOff').value=e.weeklyOff;
-                        if(e.photo) document.getElementById('empPhotoPreview').src=e.photo;
-                    }
-                    
-                    m.classList.add('active');
-                    m.setAttribute('aria-hidden', 'false');
-                    
-                    // Focus on first input
-                    setTimeout(() => document.getElementById('empName').focus(), 100);
-                } catch (error) {
-                    this.showToast('Error opening employee modal: ' + error.message, 'error');
-                }
-            },
-
-            saveEmployee() {
-                try {
-                    const id = document.getElementById('editEmpId').value;
-                    const data = {
-                        id: id ? parseInt(id) : Date.now(),
-                        name: document.getElementById('empName').value, 
-                        jobNumber: document.getElementById('empJobNumber').value,
-                        phone: document.getElementById('empPhone').value, 
-                        nationality: document.getElementById('empNationality').value,
-                        passportNo: document.getElementById('empPassportNo').value, 
-                        passportExp: document.getElementById('empPassportExp').value,
-                        eidNo: document.getElementById('empEIDNo').value, 
-                        eidExp: document.getElementById('empEIDExp').value,
-                        joinDate: document.getElementById('empJoinDate').value, 
-                        laborCard: document.getElementById('empLaborCard').value,
-                        insuranceExp: document.getElementById('empInsuranceExp').value, 
-                        weeklyOff: document.getElementById('empWeeklyOff').value,
-                        photo: document.getElementById('empPhotoBase64').value
-                    };
-                    if(!data.name) return this.showToast('Name required','error');
-                    
-                    if(id) { 
-                        const idx = this.data.employees.findIndex(x=>x.id==id); 
-                        this.data.employees[idx]=data; 
-                    } 
-                    else { 
-                        this.data.employees.push(data); 
-                    }
-                    
-                    this.saveData(); 
-                    this.renderTable(); 
-                    this.renderSchedule(); 
-                    this.closeModals(); 
-                    this.showToast('Saved','success');
-                } catch (error) {
-                    this.showToast('Error saving employee: ' + error.message, 'error');
-                }
-            },
-            deleteEmployee() {
-                try {
-                    if(confirm('Delete this employee? This action cannot be undone.')) {
-                        const id = document.getElementById('editEmpId').value;
-                        this.data.employees = this.data.employees.filter(e=>e.id!=id);
-                        this.saveData(); 
-                        this.renderTable(); 
-                        this.renderSchedule(); 
-                        this.closeModals(); 
-                        this.showToast('Deleted','success');
-                    }
-                } catch (error) {
-                    this.showToast('Error deleting employee: ' + error.message, 'error');
-                }
-            },
-
-            openAttendanceModal(id, day) {
-                try {
-                    const e = this.data.employees.find(x=>x.id===id);
-                    if (!e) {
-                        this.showToast('Employee not found', 'error');
-                        return;
-                    }
-                    
-                    const a = this.getAttendance(id, day);
-                    document.getElementById('modalEmpName').value=e.name;
-                    document.getElementById('modalDate').value=`${day} ${document.getElementById('monthSelect').value} ${this.data.currentYear}`;
-                    document.getElementById('modalEmpId').value=id; 
-                    document.getElementById('modalDay').value=day;
-                    document.getElementById('modalStatus').value = a ? a.status : 'present';
-                    document.getElementById('modalHours').value = a ? a.hours : 9;
-                    this.toggleHoursInput();
-                    document.getElementById('attendanceModal').classList.add('active');
-                    document.getElementById('attendanceModal').setAttribute('aria-hidden', 'false');
-                    
-                    // Focus on status select
-                    setTimeout(() => document.getElementById('modalStatus').focus(), 100);
-                } catch (error) {
-                    this.showToast('Error opening attendance modal: ' + error.message, 'error');
-                }
-            },
-            toggleHoursInput() {
-                document.getElementById('hoursGroup').style.display = (['present','overtime'].includes(document.getElementById('modalStatus').value)) ? 'block' : 'none';
-            },
-            saveAttendance() {
-                try {
-                    const id = parseInt(document.getElementById('modalEmpId').value);
-                    const day = parseInt(document.getElementById('modalDay').value);
-                    const status = document.getElementById('modalStatus').value;
-                    const hours = status==='present'||status==='overtime' ? parseFloat(document.getElementById('modalHours').value) : 0;
-                    const k = `${this.data.currentYear}_${this.data.currentMonth}`;
-                    if(!this.data.attendance[k]) this.data.attendance[k]={};
-                    if(!this.data.attendance[k][id]) this.data.attendance[k][id]={};
-                    this.data.attendance[k][id][day]={ status, hours };
-                    this.saveData(); 
-                    this.renderTable(); 
-                    this.closeModals(); 
-                    this.showToast('Updated','success');
-                } catch (error) {
-                    this.showToast('Error saving attendance: ' + error.message, 'error');
-                }
-            },
-
-            // --- Bulk, OT, Report, Print ---
-            openBulkModal() {
-                try {
-                    const s = document.getElementById('bulkEmpSelect');
-                    s.innerHTML = '<option value="all">ALL</option>'+this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-                    const dim = new Date(this.data.currentYear, this.data.currentMonth+1, 0).getDate();
-                    document.getElementById('bulkStart').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-01`;
-                    document.getElementById('bulkEnd').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-${dim}`;
-                    document.getElementById('bulkModal').classList.add('active');
-                    document.getElementById('bulkModal').setAttribute('aria-hidden', 'false');
-                } catch (error) {
-                    this.showToast('Error opening bulk modal: ' + error.message, 'error');
-                }
-            },
-            applyBulkAction() {
-                try {
-                    const eid = document.getElementById('bulkEmpSelect').value;
-                    const status = document.getElementById('bulkStatus').value;
-                    const start = new Date(document.getElementById('bulkStart').value);
-                    const end = new Date(document.getElementById('bulkEnd').value);
-                    if(end<start) return this.showToast('Invalid date range','error');
-                    
-                    const targets = eid==='all' ? this.data.employees : this.data.employees.filter(e=>e.id==eid);
-                    const k = `${this.data.currentYear}_${this.data.currentMonth}`;
-                    if(!this.data.attendance[k]) this.data.attendance[k]={};
-
-                    let d = new Date(start);
-                    while(d<=end) {
-                        if(d.getMonth()===this.data.currentMonth) {
-                            const day = d.getDate();
-                            targets.forEach(e => {
-                                if(!this.data.attendance[k][e.id]) this.data.attendance[k][e.id]={};
-                                this.data.attendance[k][e.id][day]={status, hours:0};
-                            });
-                        }
-                        d.setDate(d.getDate()+1);
-                    }
-                    this.saveData(); 
-                    this.renderTable(); 
-                    this.closeModals(); 
-                    this.showToast('Bulk Applied','success');
-                } catch (error) {
-                    this.showToast('Error applying bulk action: ' + error.message, 'error');
-                }
-            },
-            openOTModal() {
-                try {
-                    const s = document.getElementById('otEmpSelect');
-                    s.innerHTML = '<option value="all">ALL</option>'+this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-                    const dim = new Date(this.data.currentYear, this.data.currentMonth+1, 0).getDate();
-                    document.getElementById('otStart').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-01`;
-                    document.getElementById('otEnd').value=`${this.data.currentYear}-${String(this.data.currentMonth+1).padStart(2,'0')}-${dim}`;
-                    document.getElementById('otModal').classList.add('active');
-                    document.getElementById('otModal').setAttribute('aria-hidden', 'false');
-                } catch (error) {
-                    this.showToast('Error opening OT modal: ' + error.message, 'error');
-                }
-            },
-            toggleOTActionUI() {
-                const act = document.getElementById('otAction').value;
-                document.getElementById('otValueLabel').innerText = act==='add'?'Extra Hours':'Total Hours';
-            },
-            applyQuickOT() {
-                try {
-                    const eid = document.getElementById('otEmpSelect').value;
-                    const val = parseFloat(document.getElementById('otHours').value);
-                    const act = document.getElementById('otAction').value;
-                    const start = new Date(document.getElementById('otStart').value);
-                    const end = new Date(document.getElementById('otEnd').value);
-                    
-                    const targets = eid==='all' ? this.data.employees : this.data.employees.filter(e=>e.id==eid);
-                    const k = `${this.data.currentYear}_${this.data.currentMonth}`;
-                    if(!this.data.attendance[k]) this.data.attendance[k]={};
-
-                    let d = new Date(start);
-                    while(d<=end) {
-                        if(d.getMonth()===this.data.currentMonth) {
-                            const day = d.getDate();
-                            targets.forEach(e => {
-                                if(!this.data.attendance[k][e.id]) this.data.attendance[k][e.id]={};
-                                const curr = this.data.attendance[k][e.id][day];
-                                if(!curr || curr.status==='present'||curr.status==='overtime') {
-                                    let h = act==='add' ? ((curr?curr.hours:9)+val) : val;
-                                    this.data.attendance[k][e.id][day]={status:'present', hours:h};
-                                }
-                            });
-                        }
-                        d.setDate(d.getDate()+1);
-                    }
-                    this.saveData(); 
-                    this.renderTable(); 
-                    this.closeModals(); 
-                    this.showToast('OT Updated','success');
-                } catch (error) {
-                    this.showToast('Error applying OT: ' + error.message, 'error');
-                }
-            },
-
-            // --- Reporting ---
-            openReportModal() {
-                try {
-                    const s = document.getElementById('reportEmpSelect');
-                    s.innerHTML = this.data.employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-                    document.getElementById('reportMonth').innerHTML = ["January","February","March","April","May","June","July","August","September","October","November","December"].map((m,i)=>`<option value="${i}" ${i===this.data.currentMonth?'selected':''}>${m}</option>`).join('');
-                    document.getElementById('reportYear').innerHTML = [2024,2025,2026,2027,2028].map(y=>`<option value="${y}" ${y===this.data.currentYear?'selected':''}>${y}</option>`).join('');
-                    document.getElementById('reportModal').classList.add('active');
-                    document.getElementById('reportModal').setAttribute('aria-hidden', 'false');
-                } catch (error) {
-                    this.showToast('Error opening report modal: ' + error.message, 'error');
-                }
-            },
-            printDetailedReport() { 
-                try {
-                    this.printAttendance();
-                } catch (error) {
-                    this.showToast('Error printing report: ' + error.message, 'error');
-                }
-            },
-            downloadEmpCSV() { 
-                try {
-                    // Get selected employee and period
-                    const empId = document.getElementById('reportEmpSelect').value;
-                    const month = parseInt(document.getElementById('reportMonth').value);
-                    const year = parseInt(document.getElementById('reportYear').value);
-                    
-                    if (!empId) {
-                        this.showToast('Please select an employee', 'error');
-                        return;
-                    }
-                    
-                    const employee = this.data.employees.find(e => e.id == empId);
-                    if (!employee) {
-                        this.showToast('Employee not found', 'error');
-                        return;
-                    }
-                    
-                    // Get days in month
-                    const daysInMonth = new Date(year, month + 1, 0).getDate();
-                    
-                    // Create CSV content
-                    let csv = `Employee: ${employee.name} (${employee.jobNumber})\n`;
-                    csv += `Period: ${month + 1}/${year}\n\n`;
-                    csv += `Date,Status,Hours\n`;
-                    
-                    const key = `${year}_${month}`;
-                    const empAttendance = this.data.attendance[key] && this.data.attendance[key][empId] ? this.data.attendance[key][empId] : {};
-                    
-                    let totalDays = 0;
-                    let totalHours = 0;
-                    let totalOT = 0;
-                    
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const attendance = empAttendance[day];
-                        const status = attendance ? attendance.status : 'Not Recorded';
-                        const hours = attendance ? attendance.hours : 0;
-                        
-                        csv += `${day}/${month + 1}/${year},${status},${hours}\n`;
-                        
-                        if (attendance) {
-                            totalDays++;
-                            totalHours += hours;
-                            if (hours > 9) {
-                                totalOT += hours - 9;
-                            }
-                        }
-                    }
-                    
-                    csv += `\nSummary\n`;
-                    csv += `Total Days Worked,${totalDays}\n`;
-                    csv += `Total Hours,${totalHours}\n`;
-                    csv += `Total Overtime Hours,${totalOT}\n`;
-                    
-                    // Create download link
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.setAttribute('hidden', '');
-                    a.setAttribute('href', url);
-                    a.setAttribute('download', `${employee.name.replace(/\s+/g, '_')}_attendance_${month + 1}_${year}.csv`);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    this.showToast('CSV downloaded successfully', 'success');
-                } catch (error) {
-                    this.showToast('Error downloading CSV: ' + error.message, 'error');
-                }
-            },
-
-            // --- Utilities ---
-            handleImageUpload(e) {
-                try {
-                    const f = e.target.files[0]; 
-                    if(!f) return;
-                    
-                    // Check file size (limit to 5MB)
-                    if (f.size > 5 * 1024 * 1024) {
-                        this.showToast('Image size must be less than 5MB', 'error');
-                        return;
-                    }
-                    
-                    // Check file type
-                    if (!f.type.match('image.*')) {
-                        this.showToast('Please select an image file', 'error');
-                        return;
-                    }
-                    
-                    const r = new FileReader(); 
-                    r.readAsDataURL(f);
-                    r.onload = ev => {
-                        const i = new Image(); 
-                        i.src=ev.target.result;
-                        i.onload=()=>{
-                            const c = document.createElement('canvas');
-                            const ctx=c.getContext('2d');
-                            const mw=100; 
-                            const sc=mw/i.width;
-                            c.width=mw; 
-                            c.height=i.height*sc;
-                            ctx.drawImage(i,0,0,c.width,c.height);
-                            document.getElementById('empPhotoBase64').value=c.toDataURL('image/jpeg',0.8);
-                            document.getElementById('empPhotoPreview').src=c.toDataURL('image/jpeg',0.8);
-                        };
-                    };
-                } catch (error) {
-                    this.showToast('Error uploading image: ' + error.message, 'error');
-                }
-            },
-            closeModals() { 
-                document.querySelectorAll('.modal').forEach(m => {
-                    m.classList.remove('active');
-                    m.setAttribute('aria-hidden', 'true');
-                });
-            },
-            showToast(msg, t) {
-                try {
-                    const el=document.getElementById('toast');
-                    document.getElementById('toastMsg').innerText=msg;
-                    el.className=`toast show ${t}`;
-                    setTimeout(()=>el.classList.remove('show'),3000);
-                } catch (error) {
-                    console.error('Error showing toast:', error);
-                    alert(msg); // Fallback
-                }
-            },
-            startClock() { 
-                try {
-                    const updateClock = () => {
-                        document.getElementById('clock').innerText = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-                    };
-                    updateClock();
-                    setInterval(updateClock, 1000);
-                } catch (error) {
-                    console.error('Error starting clock:', error);
-                }
-            },
-            renderStats() {
-                try {
-                    const container = document.getElementById('statsContainer');
-                    const key = `${this.data.currentYear}_${this.data.currentMonth}`;
-                    
-                    // Calculate stats
-                    let totalEmployees = this.data.employees.length;
-                    let totalPresent = 0;
-                    let totalAbsent = 0;
-                    let totalOT = 0;
-                    
-                    const daysInMonth = new Date(this.data.currentYear, this.data.currentMonth + 1, 0).getDate();
-                    
-                    this.data.employees.forEach(emp => {
-                        const empAttendance = this.data.attendance[key] && this.data.attendance[key][emp.id] ? this.data.attendance[key][emp.id] : {};
-                        
-                        for (let day = 1; day <= daysInMonth; day++) {
-                            const attendance = empAttendance[day];
-                            if (attendance) {
-                                if (attendance.status === 'present' || attendance.status === 'overtime') {
-                                    totalPresent++;
-                                    if (attendance.hours > 9) {
-                                        totalOT += attendance.hours - 9;
-                                    }
-                                } else if (attendance.status === 'absent') {
-                                    totalAbsent++;
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Calculate averages
-                    const avgPresent = totalEmployees > 0 ? (totalPresent / (totalEmployees * daysInMonth) * 100).toFixed(1) : 0;
-                    const avgAbsent = totalEmployees > 0 ? (totalAbsent / (totalEmployees * daysInMonth) * 100).toFixed(1) : 0;
-                    
-                    // Render stats
-                    container.innerHTML = `
-                        <div class="stat-card" style="border-left-color: var(--primary);">
-                            <div class="stat-info">
-                                <h3>Total Employees</h3>
-                                <p>${totalEmployees}</p>
-                            </div>
-                            <i class="fas fa-users" style="font-size: 24px; color: var(--primary); opacity: 0.7;"></i>
-                        </div>
-                        <div class="stat-card" style="border-left-color: var(--success);">
-                            <div class="stat-info">
-                                <h3>Present Rate</h3>
-                                <p>${avgPresent}%</p>
-                            </div>
-                            <i class="fas fa-user-check" style="font-size: 24px; color: var(--success); opacity: 0.7;"></i>
-                        </div>
-                        <div class="stat-card" style="border-left-color: var(--secondary);">
-                            <div class="stat-info">
-                                <h3>Absent Rate</h3>
-                                <p>${avgAbsent}%</p>
-                            </div>
-                            <i class="fas fa-user-times" style="font-size: 24px; color: var(--secondary); opacity: 0.7;"></i>
-                        </div>
-                        <div class="stat-card" style="border-left-color: var(--warning);">
-                            <div class="stat-info">
-                                <h3>Total OT Hours</h3>
-                                <p>${totalOT.toFixed(1)}</p>
-                            </div>
-                            <i class="fas fa-clock" style="font-size: 24px; color: var(--warning); opacity: 0.7;"></i>
-                        </div>
-                    `;
-                } catch (error) {
-                    this.showToast('Error rendering stats: ' + error.message, 'error');
-                }
-            },
-            renderLegend() {
-                try {
-                    const container = document.getElementById('legendContainer');
-                    const statuses = [
-                        { key: 'present', label: 'Present', color: CONFIG.statusColors.present },
-                        { key: 'overtime', label: 'Overtime', color: CONFIG.statusColors.overtime },
-                        { key: 'absent', label: 'Absent', color: CONFIG.statusColors.absent },
-                        { key: 'vacation', label: 'Vacation', color: CONFIG.statusColors.vacation },
-                        { key: 'sick', label: 'Sick', color: CONFIG.statusColors.sick },
-                        { key: 'weeklyoff', label: 'Weekly Off', color: CONFIG.statusColors.weeklyoff },
-                        { key: 'emergency', label: 'Emergency', color: CONFIG.statusColors.emergency }
-                    ];
-                    
-                    container.innerHTML = statuses.map(status => `
-                        <div class="legend-item" role="listitem">
-                            <span class="dot" style="background-color: ${status.color};"></span>
-                            <span>${status.label}</span>
-                        </div>
-                    `).join('');
-                } catch (error) {
-                    this.showToast('Error rendering legend: ' + error.message, 'error');
-                }
-            },
-            checkExpirations() {
-                try {
-                    const today = new Date();
-                    const alerts = [];
-                    
-                    this.data.employees.forEach(emp => {
-                        // Check passport expiration
-                        if (emp.passportExp) {
-                            const expDate = new Date(emp.passportExp);
-                            const daysUntil = Math.floor((expDate - today) / (1000 * 60 * 60 * 24));
-                            
-                            if (daysUntil < 0) {
-                                alerts.push({
-                                    type: 'critical',
-                                    message: `${emp.name}'s passport expired ${Math.abs(daysUntil)} days ago`
-                                });
-                            } else if (daysUntil <= 30) {
-                                alerts.push({
-                                    type: 'warning',
-                                    message: `${emp.name}'s passport expires in ${daysUntil} days`
-                                });
-                            }
-                        }
-                        
-                        // Check EID expiration
-                        if (emp.eidExp) {
-                            const expDate = new Date(emp.eidExp);
-                            const daysUntil = Math.floor((expDate - today) / (1000 * 60 * 60 * 24));
-                            
-                            if (daysUntil < 0) {
-                                alerts.push({
-                                    type: 'critical',
-                                    message: `${emp.name}'s EID expired ${Math.abs(daysUntil)} days ago`
-                                });
-                            } else if (daysUntil <= 30) {
-                                alerts.push({
-                                    type: 'warning',
-                                    message: `${emp.name}'s EID expires in ${daysUntil} days`
-                                });
-                            }
-                        }
-                        
-                        // Check insurance expiration
-                        if (emp.insuranceExp) {
-                            const expDate = new Date(emp.insuranceExp);
-                            const daysUntil = Math.floor((expDate - today) / (1000 * 60 * 60 * 24));
-                            
-                            if (daysUntil < 0) {
-                                alerts.push({
-                                    type: 'critical',
-                                    message: `${emp.name}'s insurance expired ${Math.abs(daysUntil)} days ago`
-                                });
-                            } else if (daysUntil <= 30) {
-                                alerts.push({
-                                    type: 'warning',
-                                    message: `${emp.name}'s insurance expires in ${daysUntil} days`
-                                });
-                            }
-                        }
-                    });
-                    
-                    if (alerts.length > 0) {
-                        const alertBanner = document.getElementById('alertBanner');
-                        const alertList = document.getElementById('alertList');
-                        
-                        // Separate critical and warning alerts
-                        const criticalAlerts = alerts.filter(a => a.type === 'critical');
-                        const warningAlerts = alerts.filter(a => a.type === 'warning');
-                        
-                        // Set banner class based on alert type
-                        if (criticalAlerts.length > 0) {
-                            alertBanner.className = 'critical show';
-                        } else if (warningAlerts.length > 0) {
-                            alertBanner.className = 'warning show';
-                        }
-                        
-                        // Display alerts (limit to 5 to avoid overcrowding)
-                        const displayAlerts = [...criticalAlerts, ...warningAlerts].slice(0, 5);
-                        alertList.innerHTML = displayAlerts.map(alert => 
-                            `<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">${alert.message}</span>`
-                        ).join('');
-                        
-                        // Add count if there are more alerts than displayed
-                        if (alerts.length > 5) {
-                            alertList.innerHTML += `<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">+${alerts.length - 5} more</span>`;
-                        }
-                    }
-                } catch (error) {
-                    this.showToast('Error checking expirations: ' + error.message, 'error');
-                }
-            },
-            exportCSV() { 
-                try {
-                    // Get current month and year
-                    const month = this.data.currentMonth;
-                    const year = this.data.currentYear;
-                    
-                    // Get days in month
-                    const daysInMonth = new Date(year, month + 1, 0).getDate();
-                    
-                    // Create CSV content
-                    let csv = `Employee,Job Number`;
-                    
-                    // Add column headers for each day
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        csv += `,${day}`;
-                    }
-                    csv += `,Total Days,Total OT Hours\n`;
-                    
-                    // Add rows for each employee
-                    this.data.employees.forEach(emp => {
-                        csv += `"${emp.name}","${emp.jobNumber}"`;
-                        
-                        let totalDays = 0;
-                        let totalOT = 0;
-                        const key = `${year}_${month}`;
-                        const empAttendance = this.data.attendance[key] && this.data.attendance[key][emp.id] ? this.data.attendance[key][emp.id] : {};
-                        
-                        // Add attendance for each day
-                        for (let day = 1; day <= daysInMonth; day++) {
-                            const attendance = empAttendance[day];
-                            if (attendance) {
-                                if (attendance.status === 'present' || attendance.status === 'overtime') {
-                                    csv += `,${attendance.hours}`;
-                                    totalDays++;
-                                    if (attendance.hours > 9) {
-                                        totalOT += attendance.hours - 9;
-                                    }
-                                } else {
-                                    csv += `,${attendance.status.charAt(0).toUpperCase()}`;
-                                }
-                            } else {
-                                csv += `,-`;
-                            }
-                        }
-                        
-                        csv += `,${totalDays},${totalOT.toFixed(1)}\n`;
-                    });
-                    
-                    // Create download link
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.setAttribute('hidden', '');
-                    a.setAttribute('href', url);
-                    a.setAttribute('download', `attendance_${month + 1}_${year}.csv`);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    this.showToast('CSV exported successfully', 'success');
-                } catch (error) {
-                    this.showToast('Error exporting CSV: ' + error.message, 'error');
-                }
-            },
-            printEmployeeProfile() { 
-                try {
-                    window.print(); 
-                    this.showToast('Profile sent to printer', 'success');
-                } catch (error) {
-                    this.showToast('Error printing profile: ' + error.message, 'error');
+        class DataManager {
+            constructor() {
+                if(!localStorage.getItem('crispy_init_v6')) {
+                    this.save('crispy_users', INITIAL_DATA.users);
+                    this.save('crispy_branches', INITIAL_DATA.branches);
+                    this.save('crispy_orders', INITIAL_DATA.orders);
+                    this.save('crispy_complaints', INITIAL_DATA.complaints);
+                    this.save('crispy_directedTasks', INITIAL_DATA.directedTasks);
+                    localStorage.setItem('crispy_init_v6', 'true');
                 }
             }
-        };
+            get(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+            save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+            
+            login(email, pass) {
+                const users = this.get('crispy_users');
+                const user = users.find(u => u.email === email);
+                if (user && pass === '123456') return user;
+                throw new Error("Invalid credentials");
+            }
 
-        document.addEventListener('DOMContentLoaded', () => app.init());
+            // Stats Logic
+            getStats() {
+                return {
+                    orders: this.get('crispy_orders').length,
+                    complaints: this.get('crispy_complaints').length,
+                    tasks: this.get('crispy_directedTasks').length,
+                    agents: this.get('crispy_users').filter(u => u.role === 'agent').length
+                };
+            }
+
+            calculateLeaderboard() {
+                const users = this.get('crispy_users').filter(u => u.role === 'agent');
+                const orders = this.get('crispy_orders');
+                const scores = users.map(user => {
+                    const completedCount = orders.filter(o => o.agentId === user.uid && o.status === 'Done').length;
+                    return { ...user, score: completedCount };
+                });
+                return scores.sort((a, b) => b.score - a.score);
+            }
+
+            // Data Actions
+            addOrder(data) {
+                const list = this.get('crispy_orders');
+                data.id = 'ORD-'+Math.floor(Math.random()*10000);
+                data.status = 'Pending';
+                list.push(data);
+                this.save('crispy_orders', list);
+            }
+            addComp(data) {
+                const list = this.get('crispy_complaints');
+                data.id = 'COMP-'+Math.floor(Math.random()*10000);
+                data.status = 'Open';
+                list.push(data);
+                this.save('crispy_complaints', list);
+            }
+            addDirectedTask(data) {
+                const list = this.get('crispy_directedTasks');
+                data.id = 'TSK-'+Math.floor(Math.random()*10000);
+                data.status = 'Pending';
+                list.push(data);
+                this.save('crispy_directedTasks', list);
+            }
+            
+            updateStatus(key, id, status) {
+                const list = this.get(key);
+                const item = list.find(x => x.id === id);
+                if(item) { item.status = status; this.save(key, list); }
+            }
+
+            // System Management
+            addBranch(name) { const l = this.get('crispy_branches'); l.push(name); this.save('crispy_branches', l); }
+            removeBranch(idx) { const l = this.get('crispy_branches'); l.splice(idx, 1); this.save('crispy_branches', l); }
+            addAgent(data) { const l = this.get('crispy_users'); data.uid='u'+Date.now(); data.role='agent'; l.push(data); this.save('crispy_users', l); }
+            removeAgent(uid) { let l = this.get('crispy_users'); l = l.filter(u => u.uid !== uid); this.save('crispy_users', l); }
+        }
+
+        const db = new DataManager();
+        let currentUser = null;
+
+        window.app = {
+            login: async () => {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-password').value;
+                try {
+                    currentUser = await db.login(email, pass);
+                    document.getElementById('auth-screen').style.display = 'none';
+                    document.getElementById('app-layout').style.display = 'block';
+                    app.loadView();
+                } catch(e) { alert(e.message); }
+            },
+            logout: () => location.reload(),
+            loadView: () => {
+                document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role})`;
+                if(currentUser.role === 'manager') {
+                    document.getElementById('manager-view').classList.remove('hidden');
+                    app.renderManager();
+                } else {
+                    document.getElementById('agent-view').classList.remove('hidden');
+                    app.renderAgent();
+                }
+            },
+
+            // --- MANAGER RENDER ---
+            renderManager: () => {
+                const agents = db.get('crispy_users').filter(u => u.role === 'agent');
+                
+                // Stats
+                const stats = db.getStats();
+                document.getElementById('stat-orders').textContent = stats.orders;
+                document.getElementById('stat-complaints').textContent = stats.complaints;
+                document.getElementById('stat-tasks').textContent = stats.tasks;
+                document.getElementById('stat-agents').textContent = stats.agents;
+
+                // Orders Table
+                const orders = db.get('crispy_orders');
+                document.getElementById('orders-table').innerHTML = orders.map(o => {
+                    const agent = agents.find(a => a.uid === o.agentId)?.name || 'Unknown';
+                    return `<tr><td>${o.id}</td><td>${o.client}</td><td>${agent}</td><td>${o.branch}</td><td><span class="badge badge-${o.status==='Done'?'done':'pending'}">${o.status}</span></td><td>${o.status!=='Done'?`<button class="btn btn-success" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_orders','${o.id}','Done')">Done</button>`:'-'}</td></tr>`;
+                }).join('');
+
+                // Tasks Table
+                const tasks = db.get('crispy_directedTasks');
+                document.getElementById('tasks-table').innerHTML = tasks.map(t => {
+                    const agent = agents.find(a => a.uid === t.agentId)?.name || 'Unknown';
+                    return `<tr><td>${t.title}</td><td>${agent}</td><td><span class="badge badge-task">${t.type}</span></td><td>${t.time}</td><td><span class="badge badge-${t.status==='Done'?'done':'pending'}">${t.status}</span></td><td>${t.status!=='Done'?`<button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_directedTasks','${t.id}','Done')">Close</button>`:'-'}</td></tr>`;
+                }).join('');
+
+                // Complaints Table
+                const complaints = db.get('crispy_complaints');
+                document.getElementById('complaints-table').innerHTML = complaints.map(c => {
+                    const agent = agents.find(a => a.uid === c.agentId)?.name || 'Unknown';
+                    return `<tr><td>${c.id}</td><td>${c.client}</td><td>${agent}</td><td>${c.branch}</td><td><span class="badge badge-pending">${c.status}</span></td><td><button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_complaints','${c.id}','Resolved')">Resolve</button></td></tr>`;
+                }).join('');
+
+                // Leaderboard
+                const rankedAgents = db.calculateLeaderboard();
+                document.getElementById('leaderboard-body').innerHTML = rankedAgents.map((a, index) => {
+                    const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                    const icon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                    return `<tr class="${rankClass}"><td>${index + 1} ${icon}</td><td><strong>${a.name}</strong></td><td>${a.code}</td><td>${a.score}</td></tr>`;
+                }).join('');
+
+                // Settings
+                const branches = db.get('crispy_branches');
+                document.getElementById('branches-table').innerHTML = branches.map((b, i) => `<tr><td>${b}</td><td><button class="btn btn-danger" style="padding:2px 5px" onclick="app.delBranch(${i})">Delete</button></td></tr>`).join('');
+                document.getElementById('agents-table').innerHTML = agents.map(a => `<tr><td>${a.name}</td><td>${a.code}</td><td><button class="btn btn-danger" style="padding:2px 5px" onclick="app.delAgent('${a.uid}')">Delete</button></td></tr>`).join('');
+            },
+
+            // --- AGENT RENDER ---
+            renderAgent: () => {
+                const orders = db.get('crispy_orders').filter(o => o.agentId === currentUser.uid);
+                const directedTasks = db.get('crispy_directedTasks').filter(t => t.agentId === currentUser.uid);
+                const branches = db.get('crispy_branches');
+                const rankedAgents = db.calculateLeaderboard();
+                const winner = rankedAgents[0];
+
+                // Dropdowns
+                const opts = branches.map(b => `<option value="${b}">${b}</option>`).join('');
+                document.getElementById('ao-branch').innerHTML = opts;
+                document.getElementById('ac-branch').innerHTML = opts;
+
+                // Leaderboard
+                const wn = document.getElementById('lb-winner-name');
+                const ws = document.getElementById('lb-winner-score');
+                if(winner && winner.score > 0) {
+                    wn.textContent = winner.name;
+                    ws.textContent = `${winner.score} Orders`;
+                    if(winner.uid === currentUser.uid) { wn.parentElement.style.borderColor = "var(--gold)"; }
+                } else {
+                    wn.textContent = "No Activity";
+                    ws.textContent = "0 Orders";
+                }
+
+                // Render Directed Tasks
+                document.getElementById('my-directed-tasks-list').innerHTML = directedTasks.length ? directedTasks.map(t => `
+                    <div class="card" style="border-left: 4px solid var(--primary);">
+                        <div style="display:flex; justify-content:space-between;">
+                            <h4>${t.title}</h4>
+                            <span class="badge badge-task">${t.type}</span>
+                        </div>
+                        <p style="font-size:0.9rem; margin:5px 0;">⏰ ${t.time}</p>
+                        <p style="font-size:0.8rem; color:#666;">${t.desc || ''}</p>
+                        <div style="margin-top:10px;">
+                            Status: <span class="badge badge-${t.status==='Done'?'done':'pending'}">${t.status}</span>
+                            ${t.status!=='Done' ? `<button class="btn btn-success" style="padding:2px 8px; font-size:0.8rem" onclick="app.updateStatus('crispy_directedTasks','${t.id}','Done'); app.renderAgent()">Completed</button>` : ''}
+                        </div>
+                    </div>
+                `).join('') : '<p style="font-size:0.9rem; color:#888;">No assigned tasks currently</p>';
+
+                // Render Orders
+                document.getElementById('my-orders-list').innerHTML = orders.length ? orders.map(o => `
+                    <div class="card" style="border-left:4px solid ${o.status==='Done'?'var(--success)':'var(--warning)'}">
+                        <h4>${o.client} (${o.branch})</h4>
+                        <p style="font-size:0.9rem;color:#666">📅 ${o.date} ${o.time} | 📍 ${o.address}</p>
+                        <div style="margin-top:10px;">Status: <span class="badge badge-${o.status==='Done'?'done':'pending'}">${o.status}</span></div>
+                    </div>
+                `).join('') : '';
+            },
+
+            // --- GENERAL ACTIONS ---
+            switchTab: (t) => {
+                document.querySelectorAll('.tab-content').forEach(x=>x.classList.add('hidden'));
+                document.querySelectorAll('#manager-view .tab-btn').forEach(b=>b.classList.remove('active'));
+                document.getElementById('tab-'+t).classList.remove('hidden');
+                event.target.classList.add('active');
+            },
+            switchAgentTab: (t) => {
+                document.querySelectorAll('.agent-tab').forEach(x=>x.classList.add('hidden'));
+                document.querySelectorAll('#agent-view .tab-btn').forEach(b=>b.classList.remove('active'));
+                document.getElementById('atab-'+t).classList.remove('hidden');
+                event.target.classList.add('active');
+            },
+            
+            // Modals
+            openModal: (id) => {
+                if(id === 'add-task') {
+                    const agents = db.get('crispy_users').filter(u => u.role === 'agent');
+                    document.getElementById('dt-agent').innerHTML = agents.map(a => `<option value="${a.uid}">${a.name}</option>`).join('');
+                }
+                document.getElementById('modal-'+id).classList.remove('hidden');
+            },
+            closeModal: (id) => document.getElementById('modal-'+id).classList.add('hidden'),
+
+            saveDirectedTask: () => {
+                const data = {
+                    title: document.getElementById('dt-title').value,
+                    agentId: document.getElementById('dt-agent').value,
+                    type: document.getElementById('dt-type').value,
+                    time: document.getElementById('dt-time').value,
+                    desc: document.getElementById('dt-desc').value
+                };
+                if(!data.title || !data.agentId) return alert('Missing information');
+                db.addDirectedTask(data);
+                app.closeModal('add-task');
+                app.renderManager();
+            },
+
+            updateStatus: (key, id, status) => {
+                db.updateStatus(key, id, status);
+                if(currentUser.role === 'manager') app.renderManager();
+                else app.renderAgent();
+            },
+
+            // Agent Actions
+            submitOrder: () => {
+                db.addOrder({
+                    client: document.getElementById('ao-client').value,
+                    branch: document.getElementById('ao-branch').value,
+                    date: document.getElementById('ao-date').value,
+                    time: document.getElementById('ao-time').value,
+                    address: document.getElementById('ao-address').value,
+                    agentId: currentUser.uid
+                });
+                alert('Order Confirmed'); app.switchAgentTab('tasks'); app.renderAgent();
+            },
+            submitComplaint: () => {
+                db.addComp({
+                    client: document.getElementById('ac-client').value,
+                    branch: document.getElementById('ac-branch').value,
+                    invoice: document.getElementById('ac-invoice').value,
+                    details: document.getElementById('ac-details').value,
+                    agentId: currentUser.uid
+                });
+                alert('Report Submitted'); app.switchAgentTab('tasks');
+            },
+
+            // System Actions
+            saveBranch: () => { const n=document.getElementById('new-branch-name').value; if(n){db.addBranch(n); app.closeModal(); app.renderManager();}},
+            delBranch: (i) => { if(confirm('Delete?')){db.removeBranch(i); app.renderManager();}},
+            saveAgent: () => { const n=document.getElementById('new-agent-name').value; const c=document.getElementById('new-agent-code').value; const e=document.getElementById('new-agent-email').value; if(n && e){db.addAgent({name:n,code:c,email:e}); app.closeModal(); app.renderManager();}},
+            delAgent: (uid) => { if(confirm('Delete?')){db.removeAgent(uid); app.renderManager();}}
+        };
     </script>
 </body>
 </html>
