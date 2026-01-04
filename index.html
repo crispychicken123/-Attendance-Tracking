@@ -3,88 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crispy Call Center System</title>
+    <title>Crispy Call Center System - Enhanced</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
     <style>
         :root {
-            --primary: #dc2626; /* Crispy Red */
+            --primary: #dc2626;
             --primary-dark: #991b1b;
+            --primary-light: #fca5a5;
             --gold: #fbbf24;
+            --gold-dark: #d97706;
             --secondary: #64748b;
             --success: #10b981;
+            --success-dark: #047857;
             --warning: #f59e0b;
+            --warning-dark: #b45309;
+            --danger: #ef4444;
+            --danger-dark: #b91c1c;
             --bg: #f8fafc;
+            --bg-dark: #1e293b;
             --surface: #ffffff;
+            --surface-dark: #334155;
             --text: #0f172a;
+            --text-dark: #f1f5f9;
             --border: #e2e8f0;
+            --border-dark: #475569;
+            --shadow: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
         
-        body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
-
-        /* --- Components --- */
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--secondary); }
-
-        .card { background: var(--surface); border-radius: 10px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 500; }
-        .input-group input, .input-group select, .input-group textarea {
-            width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem;
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh;
+            transition: var(--transition);
         }
 
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .badge-pending { background: #fff7ed; color: #c2410c; }
-        .badge-done { background: #f0fdf4; color: #15803d; }
-        .badge-task { background: #eff6ff; color: #1e40af; }
+        body.dark-mode {
+            --bg: var(--bg-dark);
+            --surface: var(--surface-dark);
+            --text: var(--text-dark);
+            --border: var(--border-dark);
+            --shadow: 0 2px 4px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+        }
+
+        /* --- Components --- */
+        .btn { 
+            padding: 8px 16px; 
+            border-radius: 6px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 500; 
+            transition: var(--transition); 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary { 
+            background: var(--primary); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+        }
+        
+        .btn-danger { 
+            background: var(--danger); 
+            color: white; 
+        }
+        .btn-danger:hover { 
+            background: var(--danger-dark); 
+        }
+        
+        .btn-success { 
+            background: var(--success); 
+            color: white; 
+        }
+        .btn-success:hover { 
+            background: var(--success-dark); 
+        }
+        
+        .btn-outline { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--secondary); 
+        }
+        .btn-outline:hover { 
+            background: var(--bg); 
+            transform: translateY(-2px);
+        }
+
+        .card { 
+            background: var(--surface); 
+            border-radius: 10px; 
+            padding: 20px; 
+            box-shadow: var(--shadow); 
+            margin-bottom: 20px;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .input-group { 
+            margin-bottom: 12px; 
+        }
+        .input-group label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-size: 0.9rem; 
+            font-weight: 500; 
+        }
+        .input-group input, 
+        .input-group select, 
+        .input-group textarea {
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .badge { 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-size: 0.75rem; 
+            font-weight: bold; 
+            display: inline-block;
+        }
+        .badge-pending { 
+            background: #fff7ed; 
+            color: #c2410c; 
+        }
+        .badge-done { 
+            background: #f0fdf4; 
+            color: #15803d; 
+        }
+        .badge-task { 
+            background: #eff6ff; 
+            color: #1e40af; 
+        }
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         /* Date Display */
-        .date-display { background: #1e293b; color: #fff; padding: 8px 20px; border-radius: 20px; font-family: 'Courier New', monospace; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        .date-display { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+            color: #fff; 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 0.9rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+        }
 
         /* Trophy Card */
-        .trophy-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid var(--gold); text-align: center; position: relative; overflow: hidden; }
-        .trophy-icon { font-size: 2.5rem; margin-bottom: 5px; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        .trophy-card { 
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); 
+            border: 2px solid var(--gold); 
+            text-align: center; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.3);
+        }
+        .trophy-icon { 
+            font-size: 2.5rem; 
+            margin-bottom: 5px; 
+            animation: bounce 2s infinite; 
+            filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.4));
+        }
+        @keyframes bounce { 
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 
+            40% {transform: translateY(-10px);} 
+            60% {transform: translateY(-5px);} 
+        }
 
-        /* --- Layouts --- */
-        #auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #0f172a; }
-        .login-box { width: 100%; max-width: 380px; }
+        /* Layouts */
+        #auth-screen { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background: linear-gradient(135deg, var(--bg) 0%, var(--surface-dark) 100%);
+        }
+        .login-box { 
+            width: 100%; 
+            max-width: 380px; 
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        #app-layout { display: none; min-height: 100vh; }
-        header { background: var(--surface); padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-        .main-content { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        #app-layout { 
+            display: none; 
+            min-height: 100vh; 
+            background: var(--bg);
+        }
+        header { 
+            background: var(--surface); 
+            padding: 15px 24px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border); 
+            position: sticky; 
+            top: 0; 
+            z-index: 50;
+            box-shadow: var(--shadow);
+        }
+        .main-content { 
+            padding: 20px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
 
         /* Tabs */
-        .tabs { display: flex; gap: 5px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
-        .tab-btn { background: none; border: none; padding: 8px 16px; cursor: pointer; border-radius: 6px; font-weight: 500; color: var(--secondary); white-space: nowrap; }
-        .tab-btn:hover { background: #f8fafc; }
-        .tab-btn.active { background: #fee2e2; color: var(--primary); }
-
-        /* Tables (LTR Adjustments) */
-        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        th { background: #f8fafc; color: var(--secondary); }
+        .tabs { 
+            display: flex; 
+            gap: 5px; 
+            margin-bottom: 20px; 
+            overflow-x: auto; 
+            padding-bottom: 5px; 
+            border-bottom: 1px solid var(--border);
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--surface);
+        }
+        .tabs::-webkit-scrollbar {
+            height: 6px;
+        }
+        .tabs::-webkit-scrollbar-track {
+            background: var(--surface);
+            border-radius: 3px;
+        }
+        .tabs::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
         
-        .rank-1 { border-left: 4px solid var(--gold); background: #fffbeb; }
-        .rank-2 { border-left: 4px solid var(--silver); background: #f8fafc; }
-        .rank-3 { border-left: 4px solid var(--bronze); background: #fff7ed; }
+        .tab-btn { 
+            background: none; 
+            border: none; 
+            padding: 8px 16px; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            font-weight: 500; 
+            color: var(--secondary); 
+            white-space: nowrap;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover { 
+            background: var(--bg); 
+            transform: translateY(-2px);
+        }
+        .tab-btn.active { 
+            background: var(--primary-light); 
+            color: var(--primary); 
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
 
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card h3 { font-size: 1.8rem; color: var(--primary); margin: 5px 0; }
+        /* Tables */
+        .table-container { 
+            overflow-x: auto; 
+            border-radius: 8px; 
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 800px; 
+        }
+        th, td { 
+            padding: 12px 15px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border); 
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        th { 
+            background: var(--bg); 
+            color: var(--secondary); 
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .rank-1 { 
+            border-left: 4px solid var(--gold); 
+            background: linear-gradient(to right, rgba(251, 191, 36, 0.1), transparent);
+        }
+        .rank-2 { 
+            border-left: 4px solid #94a3b8; 
+            background: linear-gradient(to right, rgba(148, 163, 184, 0.1), transparent);
+        }
+        .rank-3 { 
+            border-left: 4px solid #f97316; 
+            background: linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent);
+        }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 200; }
-        .modal-content { background: var(--surface); padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; }
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 25px; 
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card h3 { 
+            font-size: 1.8rem; 
+            color: var(--primary); 
+            margin: 5px 0;
+            transition: var(--transition);
+        }
+        .stat-card:hover h3 {
+            transform: scale(1.05);
+        }
+        .stat-card .icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 3rem;
+            opacity: 0.1;
+            color: var(--primary);
+        }
+
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(0,0,0,0.7); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 200;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content { 
+            background: var(--surface); 
+            padding: 25px; 
+            border-radius: 10px; 
+            width: 100%; 
+            max-width: 500px;
+            animation: modalSlideIn 0.3s ease-out;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
         .hidden { display: none !important; }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--surface);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid var(--success);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.error {
+            border-left-color: var(--danger);
+        }
+        
+        .notification.warning {
+            border-left-color: var(--warning);
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                margin: 0 -10px;
+            }
+            
+            .tabs {
+                padding: 0 10px;
+            }
+            
+            .tab-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -92,10 +521,29 @@
     <!-- AUTH SCREEN -->
     <section id="auth-screen">
         <div class="card login-box">
-            <h2 style="text-align: center; margin-bottom: 20px; color: var(--primary);">Crispy Call Center</h2>
-            <div class="input-group"><input type="email" id="login-email" placeholder="Email (admin@sys.com / agent@sys.com)"></div>
-            <div class="input-group"><input type="password" id="login-password" placeholder="Password (123456)"></div>
-            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="app.login()">Login</button>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;">🍗</div>
+                <h2 style="color: var(--primary); font-weight: 700;">Crispy Call Center</h2>
+                <p style="color: var(--secondary); font-size: 0.9rem;">Professional Order Management System</p>
+            </div>
+            
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="login-email" placeholder="admin@sys.com / agent@sys.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="123456">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="app.login()">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            
+            <div style="margin-top: 20px; text-align: center; font-size: 0.85rem; color: var(--secondary);">
+                <p>Demo Credentials:</p>
+                <p style="margin: 5px 0;">Admin: admin@sys.com / 123456</p>
+                <p>Agent: ahmed@sys.com / 123456</p>
+            </div>
         </div>
     </section>
 
@@ -103,18 +551,29 @@
     <section id="app-layout">
         <header>
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">C</div>
-                <span id="header-role" style="font-weight: bold; font-size: 1.1rem;">Dashboard</span>
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);">
+                    C
+                </div>
+                <div>
+                    <span id="header-role" style="font-weight: bold; font-size: 1.1rem;">Dashboard</span>
+                    <div style="font-size: 0.8rem; color: var(--secondary);">Crispy Call Center System</div>
+                </div>
             </div>
             
             <!-- Date Display (English) -->
             <div class="date-display">
+                <i class="fas fa-calendar-alt"></i>
                 <span id="current-date">...</span>
             </div>
 
             <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="btn btn-outline" onclick="app.toggleTheme()">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <span id="user-info" style="font-size: 0.9rem; color: var(--secondary);"></span>
-                <button class="btn btn-outline" onclick="app.logout()">Logout</button>
+                <button class="btn btn-outline" onclick="app.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </header>
 
@@ -123,26 +582,115 @@
             <!-- MANAGER VIEW -->
             <div id="manager-view" class="hidden">
                 <div class="dashboard-grid">
-                    <div class="card stat-card"><p>Total Orders</p><h3 id="stat-orders">0</h3></div>
-                    <div class="card stat-card"><p>Complaints</p><h3 id="stat-complaints">0</h3></div>
-                    <div class="card stat-card"><p>Assigned Tasks</p><h3 id="stat-tasks">0</h3></div>
-                    <div class="card stat-card"><p>Active Agents</p><h3 id="stat-agents">0</h3></div>
+                    <div class="card stat-card">
+                        <i class="fas fa-shopping-cart icon"></i>
+                        <p>Total Orders</p>
+                        <h3 id="stat-orders">0</h3>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fas fa-exclamation-triangle icon"></i>
+                        <p>Complaints</p>
+                        <h3 id="stat-complaints">0</h3>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fas fa-tasks icon"></i>
+                        <p>Assigned Tasks</p>
+                        <h3 id="stat-tasks">0</h3>
+                    </div>
+                    <div class="card stat-card">
+                        <i class="fas fa-users icon"></i>
+                        <p>Active Agents</p>
+                        <h3 id="stat-agents">0</h3>
+                    </div>
                 </div>
 
                 <div class="tabs">
-                    <button class="tab-btn active" onclick="app.switchTab('orders')">📦 Orders</button>
-                    <button class="tab-btn" onclick="app.switchTab('direct-tasks')">📝 Assign Tasks</button>
-                    <button class="tab-btn" onclick="app.switchTab('complaints')">⚠️ Complaints</button>
-                    <button class="tab-btn" onclick="app.switchTab('leaderboard')">🏆 Leaderboard</button>
-                    <button class="tab-btn" onclick="app.switchTab('system-settings')">⚙️ Settings</button>
+                    <button class="tab-btn active" onclick="app.switchTab('dashboard')">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </button>
+                    <button class="tab-btn" onclick="app.switchTab('orders')">
+                        <i class="fas fa-shopping-bag"></i> Orders
+                    </button>
+                    <button class="tab-btn" onclick="app.switchTab('direct-tasks')">
+                        <i class="fas fa-clipboard-list"></i> Assign Tasks
+                    </button>
+                    <button class="tab-btn" onclick="app.switchTab('complaints')">
+                        <i class="fas fa-exclamation-circle"></i> Complaints
+                    </button>
+                    <button class="tab-btn" onclick="app.switchTab('leaderboard')">
+                        <i class="fas fa-trophy"></i> Leaderboard
+                    </button>
+                    <button class="tab-btn" onclick="app.switchTab('system-settings')">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div id="tab-dashboard" class="tab-content">
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Order Statistics</h3>
+                        <div class="chart-container">
+                            <canvas id="ordersChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px;">Recent Activity</h3>
+                        <div id="recent-activity" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="tab-orders" class="tab-content hidden">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3>Orders Log</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-outline" onclick="app.exportToPDF('orders')">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                            <button class="btn btn-outline" onclick="app.exportToExcel('orders')">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="orders-search" placeholder="Search orders by ID, customer, or agent...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Agent</th>
+                                    <th>Branch</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Directed Tasks Tab -->
                 <div id="tab-direct-tasks" class="tab-content hidden">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3>Call Center Tasks</h3>
-                        <button class="btn btn-primary" onclick="app.openModal('add-task')">+ New Assignment</button>
+                        <button class="btn btn-primary" onclick="app.openModal('add-task')">
+                            <i class="fas fa-plus"></i> New Assignment
+                        </button>
                     </div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="tasks-search" placeholder="Search tasks by title or agent...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    
                     <div class="table-container">
                         <table>
                             <thead>
@@ -160,38 +708,117 @@
                     </div>
                 </div>
 
-                <!-- Orders Tab -->
-                <div id="tab-orders" class="tab-content">
-                    <h3>Orders Log</h3>
-                    <div class="table-container"><table><thead><tr><th>ID</th><th>Customer</th><th>Agent</th><th>Branch</th><th>Status</th><th>Action</th></tr></thead><tbody id="orders-table"></tbody></table></div>
-                </div>
-
                 <!-- Complaints Tab -->
                 <div id="tab-complaints" class="tab-content hidden">
-                    <h3>Complaints Log</h3>
-                    <div class="table-container"><table><thead><tr><th>ID</th><th>Customer</th><th>Agent</th><th>Branch</th><th>Status</th><th>Action</th></tr></thead><tbody id="complaints-table"></tbody></table></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3>Complaints Log</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-outline" onclick="app.exportToPDF('complaints')">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                            <button class="btn btn-outline" onclick="app.exportToExcel('complaints')">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="complaints-search" placeholder="Search complaints by ID, customer, or agent...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Agent</th>
+                                    <th>Branch</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="complaints-table"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Leaderboard Tab -->
                 <div id="tab-leaderboard" class="tab-content hidden">
-                    <h3 style="color: var(--bronze); margin-bottom: 15px;">Top Performers Today</h3>
+                    <h3 style="color: var(--gold); margin-bottom: 15px;">
+                        <i class="fas fa-trophy"></i> Top Performers Today
+                    </h3>
+                    
                     <div class="card" style="padding:0;">
                         <div class="table-container">
-                            <table><thead><tr><th>Rank</th><th>Agent Name</th><th>Code</th><th>Completed Orders</th></tr></thead><tbody id="leaderboard-body"></tbody></table>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Agent Name</th>
+                                        <th>Code</th>
+                                        <th>Completed Orders</th>
+                                        <th>Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-body"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
                 <!-- System Settings -->
                 <div id="tab-system-settings" class="tab-content hidden">
-                    <h3 style="color:var(--primary); margin-bottom:15px;">System Settings</h3>
+                    <h3 style="color:var(--primary); margin-bottom:15px;">
+                        <i class="fas fa-cog"></i> System Settings
+                    </h3>
+                    
                     <div class="card">
                         <h4>Branches</h4>
-                        <div class="table-container"><table><thead><tr><th>Branch Name</th><th>Delete</th></tr></thead><tbody id="branches-table"></tbody></table></div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input type="text" id="new-branch-name" placeholder="New branch name" class="input-group input">
+                            <button class="btn btn-primary" onclick="app.saveBranch()">
+                                <i class="fas fa-plus"></i> Add Branch
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Branch Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branches-table"></tbody>
+                            </table>
+                        </div>
                     </div>
+                    
                     <div class="card">
                         <h4>Agents</h4>
-                        <div class="table-container"><table><thead><tr><th>Name</th><th>Code</th><th>Delete</th></tr></thead><tbody id="agents-table"></tbody></table></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <input type="text" id="new-agent-name" placeholder="Agent name" class="input-group input">
+                            <input type="text" id="new-agent-code" placeholder="Agent code" class="input-group input">
+                            <input type="email" id="new-agent-email" placeholder="Agent email" class="input-group input">
+                        </div>
+                        <button class="btn btn-primary" onclick="app.saveAgent()">
+                            <i class="fas fa-user-plus"></i> Add Agent
+                        </button>
+                        <div class="table-container" style="margin-top: 15px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Code</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="agents-table"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -207,17 +834,30 @@
                 </div>
 
                 <div class="tabs">
-                    <button class="tab-btn active" onclick="app.switchAgentTab('tasks')">📋 My Tasks</button>
-                    <button class="tab-btn" onclick="app.switchAgentTab('add-order')">📝 New Order</button>
-                    <button class="tab-btn" onclick="app.switchAgentTab('add-comp')">🚩 Report Issue</button>
+                    <button class="tab-btn active" onclick="app.switchAgentTab('tasks')">
+                        <i class="fas fa-tasks"></i> My Tasks
+                    </button>
+                    <button class="tab-btn" onclick="app.switchAgentTab('add-order')">
+                        <i class="fas fa-plus-circle"></i> New Order
+                    </button>
+                    <button class="tab-btn" onclick="app.switchAgentTab('add-comp')">
+                        <i class="fas fa-flag"></i> Report Issue
+                    </button>
+                    <button class="tab-btn" onclick="app.switchAgentTab('my-stats')">
+                        <i class="fas fa-chart-bar"></i> My Stats
+                    </button>
                 </div>
 
                 <!-- Agent Tasks (Orders + Directed Tasks) -->
                 <div id="atab-tasks" class="agent-tab">
-                    <h4>📨 Assigned Tasks (Manager)</h4>
-                    <div id="my-directed-tasks-list" style="margin-bottom: 20px;"></div>
+                    <h4 style="margin-bottom: 15px;">
+                        <i class="fas fa-clipboard-list"></i> Assigned Tasks (Manager)
+                    </h4>
+                    <div id="my-directed-tasks-list" style="margin-bottom: 30px;"></div>
                     
-                    <h4>🛵 My Delivery Orders</h4>
+                    <h4 style="margin-bottom: 15px;">
+                        <i class="fas fa-shopping-cart"></i> My Delivery Orders
+                    </h4>
                     <div id="my-orders-list"></div>
                 </div>
 
@@ -232,7 +872,9 @@
                             <div class="input-group"><label>Time</label><input type="time" id="ao-time"></div>
                         </div>
                         <div class="input-group"><label>Delivery Address</label><textarea id="ao-address"></textarea></div>
-                        <button class="btn btn-primary" style="width:100%" onclick="app.submitOrder()">Confirm Order</button>
+                        <button class="btn btn-primary" style="width:100%" onclick="app.submitOrder()">
+                            <i class="fas fa-check"></i> Confirm Order
+                        </button>
                     </div>
                 </div>
 
@@ -244,7 +886,53 @@
                         <div class="input-group"><label>Branch</label><select id="ac-branch"></select></div>
                         <div class="input-group"><label>Invoice No.</label><input type="text" id="ac-invoice"></div>
                         <div class="input-group"><label>Details</label><textarea id="ac-details"></textarea></div>
-                        <button class="btn btn-danger" style="width:100%" onclick="app.submitComplaint()">Submit Report</button>
+                        <button class="btn btn-danger" style="width:100%" onclick="app.submitComplaint()">
+                            <i class="fas fa-exclamation"></i> Submit Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Agent Stats -->
+                <div id="atab-my-stats" class="agent-tab hidden">
+                    <div class="dashboard-grid">
+                        <div class="card stat-card">
+                            <i class="fas fa-shopping-cart icon"></i>
+                            <p>Total Orders</p>
+                            <h3 id="my-total-orders">0</h3>
+                        </div>
+                        <div class="card stat-card">
+                            <i class="fas fa-check-circle icon"></i>
+                            <p>Completed Orders</p>
+                            <h3 id="my-completed-orders">0</h3>
+                        </div>
+                        <div class="card stat-card">
+                            <i class="fas fa-tasks icon"></i>
+                            <p>Tasks Completed</p>
+                            <h3 id="my-completed-tasks">0</h3>
+                        </div>
+                        <div class="card stat-card">
+                            <i class="fas fa-chart-line icon"></i>
+                            <p>Performance Score</p>
+                            <h3 id="my-performance">0%</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Order History</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Branch</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="my-orders-history"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -270,12 +958,19 @@
             
             <div class="input-group"><label>Execution Time</label><input type="datetime-local" id="dt-time"></div>
             <div class="input-group"><label>Additional Details</label><textarea id="dt-desc"></textarea></div>
-            <button class="btn btn-primary" style="width:100%" onclick="app.saveDirectedTask()">Assign Task</button>
-            <button class="btn btn-outline" style="width:100%; margin-top:10px" onclick="app.closeModal('add-task')">Cancel</button>
+            <button class="btn btn-primary" style="width:100%" onclick="app.saveDirectedTask()">
+                <i class="fas fa-check"></i> Assign Task
+            </button>
+            <button class="btn btn-outline" style="width:100%; margin-top:10px" onclick="app.closeModal('add-task')">
+                <i class="fas fa-times"></i> Cancel
+            </button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC V6 -->
+    <!-- NOTIFICATION CONTAINER -->
+    <div id="notification-container"></div>
+
+    <!-- JAVASCRIPT LOGIC V7 -->
     <script type="module">
         // 1. English Date Logic
         function updateEnglishDate() {
@@ -312,13 +1007,13 @@
 
         class DataManager {
             constructor() {
-                if(!localStorage.getItem('crispy_init_v6')) {
+                if(!localStorage.getItem('crispy_init_v7')) {
                     this.save('crispy_users', INITIAL_DATA.users);
                     this.save('crispy_branches', INITIAL_DATA.branches);
                     this.save('crispy_orders', INITIAL_DATA.orders);
                     this.save('crispy_complaints', INITIAL_DATA.complaints);
                     this.save('crispy_directedTasks', INITIAL_DATA.directedTasks);
-                    localStorage.setItem('crispy_init_v6', 'true');
+                    localStorage.setItem('crispy_init_v7', 'true');
                 }
             }
             get(key) { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -356,39 +1051,68 @@
                 const list = this.get('crispy_orders');
                 data.id = 'ORD-'+Math.floor(Math.random()*10000);
                 data.status = 'Pending';
+                data.createdAt = new Date().toISOString();
                 list.push(data);
                 this.save('crispy_orders', list);
+                return data.id;
             }
             addComp(data) {
                 const list = this.get('crispy_complaints');
                 data.id = 'COMP-'+Math.floor(Math.random()*10000);
                 data.status = 'Open';
+                data.createdAt = new Date().toISOString();
                 list.push(data);
                 this.save('crispy_complaints', list);
+                return data.id;
             }
             addDirectedTask(data) {
                 const list = this.get('crispy_directedTasks');
                 data.id = 'TSK-'+Math.floor(Math.random()*10000);
                 data.status = 'Pending';
+                data.createdAt = new Date().toISOString();
                 list.push(data);
                 this.save('crispy_directedTasks', list);
+                return data.id;
             }
             
             updateStatus(key, id, status) {
                 const list = this.get(key);
                 const item = list.find(x => x.id === id);
-                if(item) { item.status = status; this.save(key, list); }
+                if(item) { 
+                    item.status = status;
+                    item.updatedAt = new Date().toISOString();
+                    this.save(key, list); 
+                }
             }
 
             // System Management
-            addBranch(name) { const l = this.get('crispy_branches'); l.push(name); this.save('crispy_branches', l); }
-            removeBranch(idx) { const l = this.get('crispy_branches'); l.splice(idx, 1); this.save('crispy_branches', l); }
-            addAgent(data) { const l = this.get('crispy_users'); data.uid='u'+Date.now(); data.role='agent'; l.push(data); this.save('crispy_users', l); }
-            removeAgent(uid) { let l = this.get('crispy_users'); l = l.filter(u => u.uid !== uid); this.save('crispy_users', l); }
+            addBranch(name) { 
+                const l = this.get('crispy_branches');
+                l.push(name);
+                this.save('crispy_branches', l); 
+            }
+            removeBranch(idx) { 
+                const l = this.get('crispy_branches');
+                l.splice(idx, 1);
+                this.save('crispy_branches', l); 
+            }
+            addAgent(data) { 
+                const l = this.get('crispy_users');
+                data.uid='u'+Date.now();
+                data.role='agent';
+                l.push(data);
+                this.save('crispy_users', l); 
+            }
+            removeAgent(uid) { 
+                let l = this.get('crispy_users');
+                l = l.filter(u => u.uid !== uid);
+                this.save('crispy_users', l); 
+            }
         }
 
         const db = new DataManager();
         let currentUser = null;
+        let ordersChart = null;
 
         window.app = {
             login: async () => {
@@ -399,9 +1123,15 @@
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('app-layout').style.display = 'block';
                     app.loadView();
-                } catch(e) { alert(e.message); }
+                    app.showNotification('Login successful!', 'success');
+                } catch(e) { 
+                    app.showNotification(e.message, 'error');
+                }
             },
-            logout: () => location.reload(),
+            logout: () => {
+                app.showNotification('Logging out...', 'info');
+                setTimeout(() => location.reload(), 1000);
+            },
             loadView: () => {
                 document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role})`;
                 if(currentUser.role === 'manager') {
@@ -411,6 +1141,107 @@
                     document.getElementById('agent-view').classList.remove('hidden');
                     app.renderAgent();
                 }
+            },
+
+            // Theme Toggle
+            toggleTheme: () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            },
+
+            // Notification System
+            showNotification: (message, type = 'success') => {
+                const container = document.getElementById('notification-container');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                
+                let icon = 'fa-check-circle';
+                if (type === 'error') icon = 'fa-exclamation-circle';
+                if (type === 'warning') icon = 'fa-exclamation-triangle';
+                
+                notification.innerHTML = `
+                    <i class="fas ${icon}"></i>
+                    <span>${message}</span>
+                `;
+                
+                container.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            },
+
+            // Export Functions
+            exportToPDF: (type) => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                let title = '';
+                let data = [];
+                
+                if (type === 'orders') {
+                    title = 'Orders Report';
+                    data = db.get('crispy_orders');
+                } else if (type === 'complaints') {
+                    title = 'Complaints Report';
+                    data = db.get('crispy_complaints');
+                }
+                
+                doc.setFontSize(18);
+                doc.text(title, 14, 15);
+                
+                doc.setFontSize(11);
+                const tableData = data.map(item => [
+                    item.id,
+                    item.client,
+                    item.agentId || '-',
+                    item.branch || '-',
+                    item.status,
+                    new Date(item.createdAt).toLocaleDateString()
+                ]);
+                
+                doc.autoTable({
+                    head: [['ID', 'Customer', 'Agent', 'Branch', 'Status', 'Date']],
+                    body: tableData,
+                    startY: 25,
+                    styles: { fontSize: 10 },
+                    headStyles: { fillColor: [220, 38, 38] }
+                });
+                
+                doc.save(`${title}.pdf`);
+                app.showNotification(`${title} exported successfully!`, 'success');
+            },
+            
+            exportToExcel: (type) => {
+                let title = '';
+                let data = [];
+                
+                if (type === 'orders') {
+                    title = 'Orders';
+                    data = db.get('crispy_orders');
+                } else if (type === 'complaints') {
+                    title = 'Complaints';
+                    data = db.get('crispy_complaints');
+                }
+                
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + "ID,Customer,Agent,Branch,Status,Created Date\n"
+                    + data.map(item => 
+                        `${item.id},${item.client},${item.agentId || '-'},${item.branch || '-'},${item.status},${new Date(item.createdAt).toLocaleDateString()}`
+                    ).join("\n");
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${title}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                app.showNotification(`${title} exported successfully!`, 'success');
             },
 
             // --- MANAGER RENDER ---
@@ -424,39 +1255,220 @@
                 document.getElementById('stat-tasks').textContent = stats.tasks;
                 document.getElementById('stat-agents').textContent = stats.agents;
 
+                // Render Dashboard
+                app.renderDashboard();
+                
                 // Orders Table
-                const orders = db.get('crispy_orders');
-                document.getElementById('orders-table').innerHTML = orders.map(o => {
-                    const agent = agents.find(a => a.uid === o.agentId)?.name || 'Unknown';
-                    return `<tr><td>${o.id}</td><td>${o.client}</td><td>${agent}</td><td>${o.branch}</td><td><span class="badge badge-${o.status==='Done'?'done':'pending'}">${o.status}</span></td><td>${o.status!=='Done'?`<button class="btn btn-success" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_orders','${o.id}','Done')">Done</button>`:'-'}</td></tr>`;
-                }).join('');
-
+                app.renderOrdersTable();
+                
                 // Tasks Table
-                const tasks = db.get('crispy_directedTasks');
-                document.getElementById('tasks-table').innerHTML = tasks.map(t => {
-                    const agent = agents.find(a => a.uid === t.agentId)?.name || 'Unknown';
-                    return `<tr><td>${t.title}</td><td>${agent}</td><td><span class="badge badge-task">${t.type}</span></td><td>${t.time}</td><td><span class="badge badge-${t.status==='Done'?'done':'pending'}">${t.status}</span></td><td>${t.status!=='Done'?`<button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_directedTasks','${t.id}','Done')">Close</button>`:'-'}</td></tr>`;
-                }).join('');
-
+                app.renderTasksTable();
+                
                 // Complaints Table
-                const complaints = db.get('crispy_complaints');
-                document.getElementById('complaints-table').innerHTML = complaints.map(c => {
-                    const agent = agents.find(a => a.uid === c.agentId)?.name || 'Unknown';
-                    return `<tr><td>${c.id}</td><td>${c.client}</td><td>${agent}</td><td>${c.branch}</td><td><span class="badge badge-pending">${c.status}</span></td><td><button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_complaints','${c.id}','Resolved')">Resolve</button></td></tr>`;
-                }).join('');
-
+                app.renderComplaintsTable();
+                
                 // Leaderboard
+                app.renderLeaderboard();
+                
+                // Settings
+                app.renderSettings();
+                
+                // Recent Activity
+                app.renderRecentActivity();
+            },
+            
+            renderDashboard: () => {
+                const orders = db.get('crispy_orders');
+                const labels = ['Pending', 'Done'];
+                const data = [
+                    orders.filter(o => o.status === 'Pending').length,
+                    orders.filter(o => o.status === 'Done').length
+                ];
+                
+                const ctx = document.getElementById('ordersChart').getContext('2d');
+                
+                if (ordersChart) {
+                    ordersChart.destroy();
+                }
+                
+                ordersChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: ['#fbbf24', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Order Status Distribution'
+                            }
+                        }
+                    }
+                });
+            },
+            
+            renderRecentActivity: () => {
+                const allData = [
+                    ...db.get('crispy_orders').map(o => ({...o, type: 'Order'})),
+                    ...db.get('crispy_complaints').map(c => ({...c, type: 'Complaint'})),
+                    ...db.get('crispy_directedTasks').map(t => ({...t, type: 'Task'}))
+                ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
+                
+                const container = document.getElementById('recent-activity');
+                container.innerHTML = allData.map(item => {
+                    const icon = item.type === 'Order' ? 'fa-shopping-cart' : 
+                                item.type === 'Complaint' ? 'fa-exclamation-triangle' : 'fa-clipboard-list';
+                    const color = item.type === 'Order' ? '#dc2626' : 
+                                 item.type === 'Complaint' ? '#f59e0b' : '#3b82f6';
+                    
+                    return `
+                        <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid var(--border);">
+                            <i class="fas ${icon}" style="color: ${color}; margin-right: 10px;"></i>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500;">${item.id}</div>
+                                <div style="font-size: 0.85rem; color: var(--secondary);">${item.type} - ${item.client || item.title}</div>
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--secondary);">
+                                ${new Date(item.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                    `;
+                }).join('') || '<p style="text-align: center; color: var(--secondary); padding: 20px;">No recent activity</p>';
+            },
+            
+            renderOrdersTable: () => {
+                const orders = db.get('crispy_orders');
+                const searchTerm = document.getElementById('orders-search')?.value || '';
+                
+                const filteredOrders = orders.filter(order => 
+                    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (order.client && order.client.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (order.agentId && searchTerm)
+                );
+                
+                document.getElementById('orders-table').innerHTML = filteredOrders.map(o => {
+                    const agent = db.get('crispy_users').find(a => a.uid === o.agentId);
+                    const agentName = agent ? agent.name : 'Unknown';
+                    return `
+                        <tr>
+                            <td>${o.id}</td>
+                            <td>${o.client}</td>
+                            <td>${agentName}</td>
+                            <td>${o.branch}</td>
+                            <td><span class="badge ${o.status==='Done'?'badge-done':'badge-pending'}">${o.status}</span></td>
+                            <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+                            <td>${o.status!=='Done'?`<button class="btn btn-success" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_orders','${o.id}','Done')">Done</button>`:'-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            renderTasksTable: () => {
+                const tasks = db.get('crispy_directedTasks');
+                const searchTerm = document.getElementById('tasks-search')?.value || '';
+                
+                const filteredTasks = tasks.filter(task => 
+                    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (task.agentId && searchTerm)
+                );
+                
+                document.getElementById('tasks-table').innerHTML = filteredTasks.map(t => {
+                    const agent = db.get('crispy_users').find(a => a.uid === t.agentId);
+                    const agentName = agent ? agent.name : 'Unknown';
+                    return `
+                        <tr>
+                            <td>${t.title}</td>
+                            <td>${agentName}</td>
+                            <td><span class="badge badge-task">${t.type}</span></td>
+                            <td>${new Date(t.time).toLocaleString()}</td>
+                            <td><span class="badge ${t.status==='Done'?'badge-done':'badge-pending'}">${t.status}</span></td>
+                            <td>${t.status!=='Done'?`<button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_directedTasks','${t.id}','Done')">Close</button>`:'-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            renderComplaintsTable: () => {
+                const complaints = db.get('crispy_complaints');
+                const searchTerm = document.getElementById('complaints-search')?.value || '';
+                
+                const filteredComplaints = complaints.filter(complaint => 
+                    complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (complaint.client && complaint.client.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (complaint.agentId && searchTerm)
+                );
+                
+                document.getElementById('complaints-table').innerHTML = filteredComplaints.map(c => {
+                    const agent = db.get('crispy_users').find(a => a.uid === c.agentId);
+                    const agentName = agent ? agent.name : 'Unknown';
+                    return `
+                        <tr>
+                            <td>${c.id}</td>
+                            <td>${c.client}</td>
+                            <td>${agentName}</td>
+                            <td>${c.branch}</td>
+                            <td><span class="badge badge-pending">${c.status}</span></td>
+                            <td>${new Date(c.createdAt).toLocaleDateString()}</td>
+                            <td><button class="btn btn-outline" style="padding:2px 5px;font-size:0.7rem" onclick="app.updateStatus('crispy_complaints','${c.id}','Resolved')">Resolve</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+            
+            renderLeaderboard: () => {
                 const rankedAgents = db.calculateLeaderboard();
                 document.getElementById('leaderboard-body').innerHTML = rankedAgents.map((a, index) => {
                     const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
                     const icon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-                    return `<tr class="${rankClass}"><td>${index + 1} ${icon}</td><td><strong>${a.name}</strong></td><td>${a.code}</td><td>${a.score}</td></tr>`;
+                    const performance = index === 0 ? 'Excellent' : index === 1 ? 'Good' : index === 2 ? 'Average' : 'Needs Improvement';
+                    return `
+                        <tr class="${rankClass}">
+                            <td>${index + 1} ${icon}</td>
+                            <td><strong>${a.name}</strong></td>
+                            <td>${a.code}</td>
+                            <td>${a.score}</td>
+                            <td><span class="badge ${index < 3 ? 'badge-done' : 'badge-pending'}">${performance}</span></td>
+                        </tr>
+                    `;
                 }).join('');
-
-                // Settings
+            },
+            
+            renderSettings: () => {
                 const branches = db.get('crispy_branches');
-                document.getElementById('branches-table').innerHTML = branches.map((b, i) => `<tr><td>${b}</td><td><button class="btn btn-danger" style="padding:2px 5px" onclick="app.delBranch(${i})">Delete</button></td></tr>`).join('');
-                document.getElementById('agents-table').innerHTML = agents.map(a => `<tr><td>${a.name}</td><td>${a.code}</td><td><button class="btn btn-danger" style="padding:2px 5px" onclick="app.delAgent('${a.uid}')">Delete</button></td></tr>`).join('');
+                document.getElementById('branches-table').innerHTML = branches.map((b, i) => `
+                    <tr>
+                        <td>${b}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:2px 5px" onclick="app.delBranch(${i})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                const agents = db.get('crispy_users').filter(u => u.role === 'agent');
+                document.getElementById('agents-table').innerHTML = agents.map(a => `
+                    <tr>
+                        <td>${a.name}</td>
+                        <td>${a.code}</td>
+                        <td>${a.email}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:2px 5px" onclick="app.delAgent('${a.uid}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
             },
 
             // --- AGENT RENDER ---
@@ -478,7 +1490,10 @@
                 if(winner && winner.score > 0) {
                     wn.textContent = winner.name;
                     ws.textContent = `${winner.score} Orders`;
-                    if(winner.uid === currentUser.uid) { wn.parentElement.style.borderColor = "var(--gold)"; }
+                    if(winner.uid === currentUser.uid) { 
+                        wn.parentElement.style.borderColor = "var(--gold)";
+                        wn.parentElement.style.boxShadow = "0 0 20px rgba(251, 191, 36, 0.5)";
+                    }
                 } else {
                     wn.textContent = "No Activity";
                     ws.textContent = "0 Orders";
@@ -487,14 +1502,16 @@
                 // Render Directed Tasks
                 document.getElementById('my-directed-tasks-list').innerHTML = directedTasks.length ? directedTasks.map(t => `
                     <div class="card" style="border-left: 4px solid var(--primary);">
-                        <div style="display:flex; justify-content:space-between;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
                             <h4>${t.title}</h4>
                             <span class="badge badge-task">${t.type}</span>
                         </div>
-                        <p style="font-size:0.9rem; margin:5px 0;">⏰ ${t.time}</p>
+                        <p style="font-size:0.9rem; margin:5px 0;"><i class="fas fa-clock"></i> ${new Date(t.time).toLocaleString()}</p>
                         <p style="font-size:0.8rem; color:#666;">${t.desc || ''}</p>
-                        <div style="margin-top:10px;">
-                            Status: <span class="badge badge-${t.status==='Done'?'done':'pending'}">${t.status}</span>
+                        <div style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                Status: <span class="badge ${t.status==='Done'?'badge-done':'badge-pending'}">${t.status}</span>
+                            </div>
                             ${t.status!=='Done' ? `<button class="btn btn-success" style="padding:2px 8px; font-size:0.8rem" onclick="app.updateStatus('crispy_directedTasks','${t.id}','Done'); app.renderAgent()">Completed</button>` : ''}
                         </div>
                     </div>
@@ -505,9 +1522,35 @@
                     <div class="card" style="border-left:4px solid ${o.status==='Done'?'var(--success)':'var(--warning)'}">
                         <h4>${o.client} (${o.branch})</h4>
                         <p style="font-size:0.9rem;color:#666">📅 ${o.date} ${o.time} | 📍 ${o.address}</p>
-                        <div style="margin-top:10px;">Status: <span class="badge badge-${o.status==='Done'?'done':'pending'}">${o.status}</span></div>
+                        <div style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                Status: <span class="badge ${o.status==='Done'?'badge-done':'badge-pending'}">${o.status}</span>
+                            </div>
+                            ${o.status!=='Done' ? `<button class="btn btn-success" style="padding:2px 8px; font-size:0.8rem" onclick="app.updateStatus('crispy_orders','${o.id}','Done'); app.renderAgent()">Mark Done</button>` : ''}
+                        </div>
                     </div>
                 `).join('') : '';
+                
+                // Render Agent Stats
+                const completedOrders = orders.filter(o => o.status === 'Done').length;
+                const completedTasks = directedTasks.filter(t => t.status === 'Done').length;
+                const performance = orders.length > 0 ? Math.round((completedOrders / orders.length) * 100) : 0;
+                
+                document.getElementById('my-total-orders').textContent = orders.length;
+                document.getElementById('my-completed-orders').textContent = completedOrders;
+                document.getElementById('my-completed-tasks').textContent = completedTasks;
+                document.getElementById('my-performance').textContent = `${performance}%`;
+                
+                // Render Order History
+                document.getElementById('my-orders-history').innerHTML = orders.map(o => `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.client}</td>
+                        <td>${o.branch}</td>
+                        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+                        <td><span class="badge ${o.status==='Done'?'badge-done':'badge-pending'}">${o.status}</span></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="5" style="text-align: center; padding: 20px;">No order history</td></tr>';
             },
 
             // --- GENERAL ACTIONS ---
@@ -516,12 +1559,20 @@
                 document.querySelectorAll('#manager-view .tab-btn').forEach(b=>b.classList.remove('active'));
                 document.getElementById('tab-'+t).classList.remove('hidden');
                 event.target.classList.add('active');
+                
+                if (t === 'dashboard') {
+                    app.renderDashboard();
+                }
             },
             switchAgentTab: (t) => {
                 document.querySelectorAll('.agent-tab').forEach(x=>x.classList.add('hidden'));
                 document.querySelectorAll('#agent-view .tab-btn').forEach(b=>b.classList.remove('active'));
                 document.getElementById('atab-'+t).classList.remove('hidden');
                 event.target.classList.add('active');
+                
+                if (t === 'my-stats') {
+                    app.renderAgent();
+                }
             },
             
             // Modals
@@ -542,21 +1593,29 @@
                     time: document.getElementById('dt-time').value,
                     desc: document.getElementById('dt-desc').value
                 };
-                if(!data.title || !data.agentId) return alert('Missing information');
+                if(!data.title || !data.agentId) {
+                    app.showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
                 db.addDirectedTask(data);
                 app.closeModal('add-task');
                 app.renderManager();
+                app.showNotification('Task assigned successfully!', 'success');
             },
 
             updateStatus: (key, id, status) => {
                 db.updateStatus(key, id, status);
-                if(currentUser.role === 'manager') app.renderManager();
-                else app.renderAgent();
+                if(currentUser.role === 'manager') {
+                    app.renderManager();
+                } else {
+                    app.renderAgent();
+                }
+                app.showNotification(`Status updated to ${status}`, 'success');
             },
 
             // Agent Actions
             submitOrder: () => {
-                db.addOrder({
+                const orderId = db.addOrder({
                     client: document.getElementById('ao-client').value,
                     branch: document.getElementById('ao-branch').value,
                     date: document.getElementById('ao-date').value,
@@ -564,25 +1623,73 @@
                     address: document.getElementById('ao-address').value,
                     agentId: currentUser.uid
                 });
-                alert('Order Confirmed'); app.switchAgentTab('tasks'); app.renderAgent();
+                
+                app.showNotification(`Order ${orderId} confirmed!`, 'success');
+                app.switchAgentTab('tasks');
+                app.renderAgent();
             },
             submitComplaint: () => {
-                db.addComp({
+                const compId = db.addComp({
                     client: document.getElementById('ac-client').value,
                     branch: document.getElementById('ac-branch').value,
                     invoice: document.getElementById('ac-invoice').value,
                     details: document.getElementById('ac-details').value,
                     agentId: currentUser.uid
                 });
-                alert('Report Submitted'); app.switchAgentTab('tasks');
+                
+                app.showNotification(`Complaint ${compId} submitted!`, 'success');
+                app.switchAgentTab('tasks');
             },
 
             // System Actions
-            saveBranch: () => { const n=document.getElementById('new-branch-name').value; if(n){db.addBranch(n); app.closeModal(); app.renderManager();}},
-            delBranch: (i) => { if(confirm('Delete?')){db.removeBranch(i); app.renderManager();}},
-            saveAgent: () => { const n=document.getElementById('new-agent-name').value; const c=document.getElementById('new-agent-code').value; const e=document.getElementById('new-agent-email').value; if(n && e){db.addAgent({name:n,code:c,email:e}); app.closeModal(); app.renderManager();}},
-            delAgent: (uid) => { if(confirm('Delete?')){db.removeAgent(uid); app.renderManager();}}
+            saveBranch: () => { 
+                const n = document.getElementById('new-branch-name').value;
+                if(n) {
+                    db.addBranch(n);
+                    app.closeModal();
+                    app.renderManager();
+                    app.showNotification('Branch added successfully!', 'success');
+                }
+            },
+            delBranch: (i) => { 
+                if(confirm('Are you sure you want to delete this branch?')) {
+                    db.removeBranch(i);
+                    app.renderManager();
+                    app.showNotification('Branch deleted', 'info');
+                }
+            },
+            saveAgent: () => { 
+                const n = document.getElementById('new-agent-name').value;
+                const c = document.getElementById('new-agent-code').value;
+                const e = document.getElementById('new-agent-email').value;
+                if(n && e) {
+                    db.addAgent({name:n,code:c,email:e});
+                    app.closeModal();
+                    app.renderManager();
+                    app.showNotification('Agent added successfully!', 'success');
+                }
+            },
+            delAgent: (uid) => { 
+                if(confirm('Are you sure you want to delete this agent?')) {
+                    db.removeAgent(uid);
+                    app.renderManager();
+                    app.showNotification('Agent deleted', 'info');
+                }
+            }
         };
+        
+        // Initialize theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('theme-icon').className = 'fas fa-sun';
+        }
+        
+        // Add event listeners for search
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('orders-search')?.addEventListener('input', () => app.renderOrdersTable());
+            document.getElementById('tasks-search')?.addEventListener('input', () => app.renderTasksTable());
+            document.getElementById('complaints-search')?.addEventListener('input', () => app.renderComplaintsTable());
+        });
     </script>
 </body>
 </html>
